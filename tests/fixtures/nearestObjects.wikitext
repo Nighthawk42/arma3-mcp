@@ -1,0 +1,131 @@
+{{RV|type=command
+
+|game1= arma1
+|version1= 1.00
+
+|game2= arma2
+|version2= 1.00
+
+|game3= arma2oa
+|version3= 1.50
+
+|game4= tkoh
+|version4= 1.00
+
+|game5= arma3
+|version5= 0.50
+
+|gr1= Object Detection
+
+|descr= Returns a list of nearest objects of the given types to the given position or object, within the specified distance. If more than one object is found they will be ordered by proximity, the closest one will be first in the array. If an object is given as the center and the filter criteria applies to it, it will be the first result in the list. Alternatively, you can use [[nearObjects]] command, which doesn't sort results.
+<br><br>
+A list of ClassName types (e.g {{hl|Tank}}) can be found in [[:Category:CfgVehicles|CfgVehicles]].
+{{Feature | important | This command matches objects using [[isKindOf]] comparison instead of direct class name [[==]] comparison. As a result, if a class type is a parent, the search will return all objects that inherit from the parent as well as parent itself. This command also only finds objects that are '''[[entities]]'''. If you are looking for non-entity objects, see [[nearObjects]], [[nearestObject]].}}
+
+{{Feature | warning | Because of map object streaming, using [[nearestObjects]] or similar object finding commands over long distance from player camera may not find what you are looking for, as some objects might not exist at the time of command execution. Use [[nearestTerrainObjects]] instead. }}
+
+|s1= [[nearestObjects]] [position, types, radius, 2Dmode]
+
+|p1= position:  [[Object]] or [[Position#PositionAGL|PositionAGL]] or [[Position#Introduction|Position2D]] - where to find objects, center position.
+
+|p2= types: [[Array]] - list of class name of the objects to search for. Use an empty array <sqf inline>[]</sqf> to search for all classes.
+
+|p3= radius: [[Number]] - range from center position to search for objects.
+
+|p5= 2Dmode: [[Boolean]] - (Optional, default [[false]]) [[true]] for 2D distance, [[false]] for 3D distance
+|p5since= arma3 1.66
+
+|r1= [[Array]] of [[Object]]s
+
+|x1= <sqf>nearestObjects [player, ["Car", "Tank"], 200];</sqf>
+
+|x2= <sqf>nearestObjects [player, ["house"], 200];</sqf>
+
+|x3= <sqf>nearestObjects [[2716,2949,0], ["Car", "Truck"], 100];</sqf>
+
+|x4= Return every object in 50 metres radius around player:
+<sqf>nearestObjects [player, [], 50];</sqf>
+
+|seealso= [[nearestTerrainObjects]] [[findNearestEnemy]] [[nearestBuilding]] [[nearestObject]] [[nearObjects]] [[nearestLocation]] [[nearEntities]] [[nearTargets]] [[nearSupplies]] [[nearestLocationWithDubbing]] [[nearObjectsReady]] [[nearRoads]] [[nearestMines]]
+}}
+
+{{Note
+|user= PhilippRauch
+|timestamp= 20100403162100
+|text= To get a list with alive targets for various situations use this construct:
+<sqf>
+_nearestTargets = nearestObjects [_submunScanPos, ["VBS2_TANK", "TANK"], _scanArea];
+_validNearestTargets = [];
+{ if (alive _x ) then { _validNearestTargets set [(count _validNearestTargets), _x]; }; } forEach _nearestTargets;
+</sqf>
+results in _validNearestTargets being filled with targets == alive .. (you could use other conditions there, of course!)
+}}
+
+{{Note
+|user= Rübe
+|timestamp= 20100810022800
+|text= Passing an empty array to define the types will also return objects with no class at all (such as trees, bushes, stones, ...). 
+Example:
+<sqf>_objects = nearestObjects [_position, [], _radius];</sqf>
+Passing the array ["All"] is not the same and will only return objects that have some sort of class.
+}}
+
+{{Note
+|user= Katulobotomia
+|timestamp= 20130911145400
+|text= If you want to detect nearby grenades for the position of a unit, for example, using 'nearestObjects' won't work. You have to use
+'nearObjects' instead.
+<sqf>count (nearestObjects [_unit, ["GrenadeHand"], 30]); // WON'T WORK</sqf>
+Won't ever return anything but 0.
+<sqf>count (_unit nearObjects ["GrenadeHand", 30]); // WORKS!</sqf>
+Will work.
+}}
+
+{{Note
+|user= AgentRev01
+|timestamp= 20140322023800
+|text= The distance from which an object is determined to be inside the radius is calculated from its model center (object modelToWorld [0,0,0]), and not the position returned by getPos/ATL/ASL. If an object is used as the origin from which to scan, distance is calculated from its model center as well.
+}}
+
+{{Note
+|user= Killzone_Kid
+|timestamp= 20141026151500
+|text= Return all trees in 100m radius around player:
+<sqf>
+private _trees = [];
+{
+	if (str _x find ": t_" > -1) then {
+		_trees pushBack _x;
+	};
+} forEach nearestObjects [player, [], 100];
+</sqf> 
+}}
+
+{{Note
+|user= Tankbuster
+|timestamp= 20150827164500
+|text= If you use "Man" as the class to look for, it will only find dismounted men. IE, men in vehicles will NOT be found.
+}}
+
+{{Note
+|user= Killzone_Kid
+|timestamp= 20160108121400
+|text= The first call to this command can take significantly longer than consecutive calls. But even after the objects in given radius were cached, the sorting this command performs could be quite expensive. For example to sort ~7000 object it might take up to 100ms. For performance reasons you can use [[nearObjects]] instead, which is basically the same command but without added sorting.
+}}
+
+{{Note
+|user= Ceeeb
+|timestamp= 20160302230900
+|text= In {{arma3}}, nearestObjects is partially broken and is unable to return nearby placed explosive charges or mines when searching by classnames. Use [[nearObjects]], [[nearestObject]] or [[allMines]] instead.<br>
+Example of non-functional code:
+<sqf>
+// always returns nothing, even if there are objects that should be returned
+nearestObjects [position player, ["APERSMine_Range_Ammo", "SatchelCharge_Remote_Ammo"], 10];
+</sqf>
+}}
+
+{{Note
+|user= Killzone_Kid
+|timestamp= 20161031003200
+|text= Since {{arma3}} v1.66 the default sorting is done according to 3D distance not [[distance2D]] as before. This is an attempt to correct some very old bug in implementation.
+}}

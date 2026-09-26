@@ -1,0 +1,26 @@
+{{RV|type=command
+
+|game1= arma3
+|version1= 1.58
+
+|arg= global
+
+|gr1= Object Manipulation
+
+|descr= Gets the current value of a trait of the given unit.
+{{Feature|informative|For the default values see {{Link|setUnitTrait}}.}}
+
+|s1= unit [[getUnitTrait]] skillName
+
+|p1= unit: [[Object]]
+
+|p2= skillName: [[String]] - name of the skill
+
+|r1=
+* [[Boolean]] or [[Number]] - trait's value
+* [[Nothing]] - if ''unit'' is invalid, e.g an empty vehicle
+
+|x1= <sqf>player getUnitTrait "Medic";</sqf>
+
+|seealso= [[setUnitTrait]] [[getAllUnitTraits]]
+}}

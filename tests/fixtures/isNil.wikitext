@@ -1,0 +1,80 @@
+{{RV|type=command
+
+|game1= arma1
+|version1= 1.00
+
+|game2= arma2
+|version2= 1.00
+
+|game3= arma2oa
+|version3= 1.50
+
+|game4= tkoh
+|version4= 1.00
+
+|game5= arma3
+|version5= 0.50
+
+|gr1= Variables
+
+|descr= Tests whether a variable is [[nil]] or undefined from its [[Identifier|identifier]], or whether the given expression evaluates to [[nil]] or [[Nothing]].
+{{Feature|arma0|This command does not exist in {{ofp}}/{{arma0}} but can be emulated (see {{Link|#Example 5}}).}}
+
+|s1= [[isNil]] variableName
+
+|p1= variableName: '''[[String]]''' - [[missionNamespace]]'s or local [[Variables|variable]]'s [[Identifier|identifier]] (e.g "globalVariable", "_localVariable")
+
+|r1= [[Boolean]] - [[true]] if variable is [[nil]] or undefined
+
+|s2= [[isNil]] code
+
+|p21= code: [[Code]] - code to evaluate:
+* the code '''will''' be executed; <sqf inline>isNil { player setDamage 1 };</sqf> ''will'' kill the player
+* the code will not be allowed to [[canSuspend|suspend]] while expression is evaluated, even if the parent scope allows it (see {{Link|#Example 4}}).
+
+|r2= [[Boolean]] - [[true]] if ''code'' returns [[Nothing]], [[false]] otherwise
+
+|s3= namespace [[isNil]] variableName
+|s3since= arma3 2.18
+|p41= namespace: [[Namespace]], [[Object]], [[Group]], [[HashMap]], {{GVI|arma3|2.20|size= 0.75}} [[Control]] and [[Display]]
+|p42= variableName: [[String]] 
+|r3= [[Boolean]] - [[true]] if variable is [[nil]] or undefined
+
+|x1= <sqf>
+if (isNil "TAG_globalVariable") then { TAG_globalVariable = 0 };
+if (isNil "_localVariable") then { hint "_localVariable is nil" };
+</sqf>
+
+|x2= <sqf>isNil { player getVariable "someVar" };</sqf>
+
+|x3= <sqf>
+_myArray = [0, 1];
+isNil { _myArray select 0 }; // returns false
+isNil { _myArray select 1 }; // returns false
+isNil { _myArray select 2 }; // returns true
+isNil { _myArray select 3 }; // throws a script error. only length+1 select is allowed
+</sqf>
+
+|x4= This trick forces executing something in [[Scheduler|Unscheduled Environment]]:
+<sqf>
+0 spawn {
+	systemChat str canSuspend;		// chat shows true
+	isNil { hint str canSuspend };	// hint shows false
+};
+</sqf>
+
+|x5= {{ofp}} [[String]] comparison workaround<br>
+[[SQS Syntax]]:
+<sqs>
+_nil = format ["%1", _undefinedVariable]
+? (format ["%1", variableToTest] == _nil) : hint "variableToTest is nil"
+</sqs>
+
+[[SQF Syntax]]:
+<sqf>
+_nil = format ["%1", _undefinedVariable];
+if (format ["%1", variableToTest] == _nil) then { hint "variableToTest is nil" };
+</sqf>
+
+|seealso= [[nil]] [[Variables]] [[Scheduler]]
+}}

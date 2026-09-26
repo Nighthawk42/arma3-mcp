@@ -1,0 +1,84 @@
+name: Update wiki corpus
+
+# Keeps data/corpus.json in step with the BI wiki.
+#
+# The wiki sits behind Cloudflare, which throttles sustained API volume from a
+# single address. Running here rather than on a contributor's machine spreads
+# that load onto a fresh runner each week, and the ingest is resumable, so a
+# throttled run simply continues next time.
+
+on:
+  schedule:
+    # Sundays 04:00 UTC — off-peak for a European-hosted wiki.
+    - cron: "0 4 * * 0"
+  workflow_dispatch:
+    inputs:
+      full:
+        description: "Run a full ingest instead of an incremental update"
+        type: boolean
+        default: false
+
+# Only one run at a time: two concurrent ingests would double the load we are
+# deliberately keeping low, and would race on the same checkpoint files.
+concurrency:
+  group: update-corpus
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      # Checkpoints let a throttled ingest resume on the next run instead of
+      # starting over.
+      - name: Restore ingest checkpoints
+        uses: actions/cache@v4
+        with:
+          path: data/.ingest
+          key: ingest-checkpoints-${{ github.run_id }}
+          restore-keys: ingest-checkpoints-
+
+      - name: Update corpus
+        run: |
+          if [ "${{ inputs.full }}" = "true" ] || [ ! -f data/corpus.json ]; then
+            echo "Running full ingest (resumable)..."
+            npm run ingest
+          else
+            npm run update
+          fi
+
+      - name: Verify the corpus still parses and tests pass
+        run: |
+          node -e "
+            const c = require('./data/corpus.json');
+            if (!Array.isArray(c.entries) || c.entries.length === 0) {
+              throw new Error('corpus has no entries');
+            }
+            console.log('corpus OK:', c.entries.length, 'entries, watermark', c.watermark);
+          "
+          npm test
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- data/corpus.json; then
+            echo "No corpus changes to commit."
+            exit 0
+          fi
+          COUNT=$(node -p "require('./data/corpus.json').entries.length")
+          git add data/corpus.json
+          git commit -m "data: refresh wiki corpus (${COUNT} entries)"
+          git push

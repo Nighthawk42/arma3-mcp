@@ -1,0 +1,190 @@
+{{RV|type=command
+
+|game1= ofp
+|version1= 1.34
+
+|game2= ofpe
+|version2= 1.00
+
+|game3= arma1
+|version3= 1.00
+
+|game4= arma2
+|version4= 1.00
+
+|game5= arma2oa
+|version5= 1.50
+
+|game6= tkoh
+|version6= 1.00
+
+|game7= arma3
+|version7= 0.50
+
+|eff= global
+
+|gr1= Object Manipulation
+
+|descr= Creates an empty object of given classname type.
+See [[Arma 3: Assets]] / [[Arma 3: createVehicle/vehicles]], or [[:Category:CfgVehicles]] for earlier games.
+
+{{Feature|informative|
+* To create objects of type {{hl|"Logic"}}, use [[createUnit]].
+* To create an editable [[:Category: Eden Editor| Eden Editor]] entity, see [[create3DENEntity]].
+}}
+
+{{Feature|arma3|
+To avoid vehicle randomisation in {{arma3}}, set the {{hl|BIS_enableRandomization}} variable immediately after creating the vehicle:
+<sqf>
+private "_vehicle";
+isNil { // run [[Scheduler#Unscheduled Environment|unscheduled]]
+	_vehicle = "C_Offroad_01_F" createVehicle getPosATL player;
+	_vehicle setVariable ["BIS_enableRandomization", false];
+};
+// the _vehicle variable is available after that
+</sqf>
+See the [[Arma 3: Vehicle Customisation]] page for more information and settings.
+}}
+
+|s1= type [[createVehicle]] position
+
+|p1= type: [[String]] - vehicle/object className
+
+|p2= position: [[Position]] - desired placement position. If the exact position is occupied, nearest empty position is used.
+
+|r1= [[Object]]
+
+|s2= [[createVehicle]] [type, position, markers, placement, special]
+
+|p21= type: [[String]] - vehicle/object className
+
+|p22= position: [[Object]], [[Position#Introduction|Position2D]], [[PositionATL]] or [[PositionAGL]] - desired placement position, ([[PositionAGL]] if watercraft or amphibious)
+
+|p23= markers: [[Array]] of [[String]]s - (Optional, default <sqf inline>[]</sqf>) if the markers array contains any markers, the position is randomly picked from array of given markers plus desired placement position.
+If any of the markers were given z coordinate with [[setMarkerPos]], the vehicle will also be created at given z coordinate.
+
+|p24= placement: [[Number]] - (Optional, default 0) the vehicle is placed inside a circle with given position as center and placement as its radius.
+
+|p25= special: [[String]] - (Optional, default "NONE") can be one of the following:
+* {{hl|"NONE"}} - will look for suitable empty position near given position (subject to other placement params) before placing vehicle there.
+* {{hl|"CAN_COLLIDE"}} - places vehicle at given position (subject to other placement params), without checking if others objects can cross its 3D model.
+* {{hl|"FLY"}} - if vehicle is capable of flying and has crew, it will be made airborne at default height.
+If ''special'' is "" or not specified, default {{hl|"NONE"}} is used.
+
+|r2= [[Object]] - created vehicle or [[objNull]] if failed
+
+|x1= <sqf>_jeep = "Jeep" createVehicle position player;</sqf>
+
+|x2= <sqf>_heli = "AH1Z" createVehicle getMarkerPos "hspawn";</sqf>
+
+|x3= <sqf>_veh = createVehicle ["ah1w", position player, [], 0, "FLY"];</sqf>
+
+|x4= <sqf>_veh = createVehicle ["2S6M_Tunguska", getMarkerPos "marker1", ["marker2", "marker3"], 0, "NONE"];</sqf>
+
+|x5= Objects such as
+* "test_EmptyObjectForBubbles"
+* "test_EmptyObjectForFireBig"
+* "test_EmptyObjectForSmoke"
+create additional emitters, which are stored in "effects" variable on the object. Since {{arma3}} v1.72 these emitters are automatically deleted when object is deleted
+<sqf>
+0 spawn
+{
+	private _fire = "test_EmptyObjectForFireBig" createVehicle position player;
+	sleep 5;
+	deleteVehicle _fire;
+};
+</sqf>
+
+|x6= The following explosives (ending with {{hl|_Scripted}}) can be set off by applying [[setDamage]] 1 to them for ease of scripting:
+* "DemoCharge_Remote_Ammo_Scripted"
+* "SatchelCharge_Remote_Ammo_Scripted"
+* "ClaymoreDirectionalMine_Remote_Ammo_Scripted"
+<sqf>
+_claymore = "ClaymoreDirectionalMine_Remote_Ammo_Scripted" createVehicle position player;
+_claymore spawn
+{
+	sleep 5;
+	_this setDamage 1;
+};
+</sqf>
+
+|x7= Add inventory to objects without inventory:
+<sqf>
+_boxes = "Land_Pallet_MilBoxes_F" createVehicle position player;
+_cargo = "Supply500" createVehicle [0,0,0];
+_cargo attachTo [_boxes, [0,0,0.85]];
+
+// optional for objects that can take damage
+_boxes addEventHandler ["Killed",
+{
+	{
+		detach _x;
+		deleteVehicle _x;
+	}
+	forEach attachedObjects (_this select 0);
+}];
+</sqf>
+
+|x8= Drop player's weapon:
+<sqf>
+_weaponHolder = "GroundWeaponHolder_Scripted" createVehicle position player;
+player action ["DropWeapon", _weaponHolder, currentWeapon player];
+</sqf>
+
+|x9= The following weapon holders (ending with ''_Scripted'') do '''not''' auto-delete when empty. It is up to the mission maker to take care of these:
+* "GroundWeaponHolder_Scripted"
+* "WeaponHolderSimulated_Scripted"
+* "Weapon_Empty" (a special weaponholder that displays only a single weapon, even if it contains magazines for this weapon)
+<sqf>
+0 spawn 
+{
+	private _weaponHolder = createVehicle ["Weapon_Empty", getPosATL player, [], 0, "CAN_COLLIDE"];
+	_weaponHolder addWeaponCargo ["arifle_Katiba_F", 1];
+	hint "You have 5 seconds to grab this weapon";
+	sleep 5;
+	deleteVehicle _weaponHolder;
+};
+</sqf>
+
+|seealso= [[createVehicleLocal]] [[create3DENEntity]] [[createVehicleCrew]] [[createAgent]] [[createTrigger]] [[createUnit]] [[createMine]] [[deleteVehicle]] [[createGroup]] [[createCenter]] [[setVehiclePosition]]
+}}
+
+{{Note
+|user= MrSanchez
+|timestamp= 20150822130400
+|text= GroundWeaponHolder class is automatically deleted when empty after 0.5 to 1 seconds in A3 1.48. The exact delay is random but never lower than 0.50 secs after creation.
+You can stop deletion by adding something (cargo) to it within 0.5 seconds.
+}}
+
+{{Note
+|user= AgentRev
+|timestamp= 20170516090500
+|text= For the alternative syntax, if the vehicle has <syntaxhighlight lang="cpp" inline>canFloat = 1;</syntaxhighlight> in its config class (e.g. boats and wheeled APCs) the command expects [[Position#PositionAGL|PositionAGL]],
+otherwise always [[Position#PositionATL|PositionATL]].
+}}
+
+{{Note
+|user= demellion
+|timestamp= 20181102121600
+|text= '''WARNING:''' Do not instigate [[createVehicle]] or [[createVehicleLocal]] within a server function executed with [[Arma 3: Functions Library#Pre_and_Post_Init|preInit]] flag.<br>
+This will cause ''"You cannot play/edit this mission"'' for a vehicles compiled from a [[Arma 3: Startup Parameters#Modifications|-mod]] and make server skip/loop that mission init.
+}}
+
+{{Note
+|user= R3vo
+|timestamp= 20190810091000
+|text= The main syntax creates vehicles at ground level ignoring the Z in ''pos'' and is also faster than the alternative syntax.
+<sqf>"vehclass" createVehicle pos;</sqf>
+
+This is equivalent to <sqf>createVehicle ["vehclass", [pos select 0, pos select 1, 0], [], 0, "NONE"];</sqf>
+}}
+
+{{Note
+|user= DreadedEntity
+|timestamp= 20220313172236
+|text= Objects are created with a [[vectorUp]] of [[surfaceNormal|terrain surface normal]]. If you are creating new buildings to add to the map, you will probably want to call [[setVectorUp]] on the newly-spawned object.
+<sqf>
+_veh = createVehicle [/*etc...*/];
+_veh setVectorUp [0,0,1];
+</sqf>
+}}

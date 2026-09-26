@@ -1,0 +1,124 @@
+{{RV|type=command
+
+|game1= ofpe
+|version1= 1.00
+
+|game2= arma1
+|version2= 1.00
+
+|game3= arma2
+|version3= 1.00
+
+|game4= arma2oa
+|version4= 1.50
+
+|game5= tkoh
+|version5= 1.00
+
+|game6= arma3
+|version6= 0.50
+
+|gr1= Program Flow
+
+|descr= Adds given set of compiled instructions to the [[Scheduler|scheduler]].
+Exactly when the code will be executed is unknown, it depends on how busy is the engine and how filled up is the [[Scheduler|scheduler]].
+Therefore [[spawn]] does not wait for the supplied code to finish, instead, [[spawn]] returns a [[Script Handle|Script]] handle to the [[Scheduler|scheduler]] task.
+[[scriptDone]] command can be used to check the code completion. Additional arguments are passed to the code in local variable [[Magic Variables#this|_this]].
+Since {{GVI|arma3|1.56|size= 0.75}} the script handle also exists inside the code in {{hl|_thisScript}} variable.
+To see what spawned scripts are currently in the scheduler, use [[diag_activeSQFScripts]] command.
+
+{{Feature|warning| When multiple [[Code]] is [[spawn]]ed in an order, there is <u>no guarantee</u> that the [[spawn]]ed [[Code]] will execute in the same order (see {{Link|#Example 2}}). If the order is important, use [[BIS_fnc_spawnOrdered]].}}
+
+|s1= arguments [[spawn]] code
+
+|p1= arguments: [[Anything]] - arguments passed to the script, which later available in {{hl|_this}} variable inside the script.
+
+|p2= code: [[Code]]
+
+|r1= [[Script Handle]] - can be used to determine (via [[scriptDone]] (also via [[isNull]] in {{arma3}})) when the spawned script has finished. In {{arma3}}, the handle is also available inside the spawned script in {{hl|_thisScript}} variable
+
+
+|s2= [[spawn]] code
+|s2since= arma3 2.22
+|p21= code: [[Code]]
+|r2= [[Script Handle]]
+
+
+|s3= [[spawn]] name
+|s3since= arma3 2.22
+|p41= name: [[String]] - The name of a "Empty Handle". Behaves like [[scriptName]] inside a function.
+|r3= [[Script Handle]] - A "Empty Handle" to be used as a [[Script_Handle#Promise_Handles|Promise]]
+
+
+
+
+
+|x1= <sqf>_handle = 0 spawn { player globalChat "Hello world!" };</sqf>
+
+|x2= There is no guarantee that spawned scripts will be executed in the same order they spawned: 
+<sqf>
+for "_i" from 0 to 100 do
+{
+	_i spawn
+	{
+		diag_log _this;
+	};
+}; // Result: 51,1,2...49,50,0,52,53...100
+</sqf>
+
+|x3= Local variables declared in the main scope are not available in the spawned code. You have to pass them as parameters:
+<sqf>
+private _localVariable = 1234;
+[_localVariable] spawn 
+{
+	systemChat format ["_localVariable does not exist: %1", isNil "_localVariable"]; // _localVariable does not exist: true
+	params ["_localVariable"];
+	systemChat format ["_localVariable is now: %1", _localVariable]; // _localVariable is now: 1234
+};
+</sqf>
+
+|seealso= [[call]] [[execVM]] [[execFSM]] [[exec]] [[compile]] [[preprocessFileLineNumbers]] [[preprocessFile]] [[terminate]] [[scriptDone]] [[remoteExec]] [[sleep]] [[uiSleep]] [[canSuspend]]
+}}
+
+{{Note
+|user= Kronzky
+|timestamp= 20090306002000
+|text= [[spawn]] cannot call other local functions on the same scope as itself.<br>
+It can, however, call other global functions:
+<sqf>
+_addOne = { TST = TST + 1 };
+TST_addOne = { TST = TST + 1 };
+
+_add = {
+	TST = TST+1;
+	player sideChat format ["added: %1",TST];
+	call _addOne;
+	player sideChat format ["called local: %1",TST];
+	call TST_addOne;
+	player sideChat format ["called global: %1",TST];
+};
+TST = 0;
+call _add;
+0 spawn _add;
+</sqf>
+The call of _addOne from the spawned function does not do anything.
+}}
+
+{{Note
+|user= DreadedEntity
+|timestamp= 20141021233300
+|text= {{GVI|arma3|0.50}} [[spawn]] requires a script handle when used in the [[Editor|2D-Editor]].</br>
+{{GVI|arma3|2.04}} In [[:Category:Eden Editor|Eden Editor]] this is no longer necessary.</br></br>
+In scripts and in the [[Arma 3: Debug Console| debug console]], it is not required, but very useful for keeping track of running scripts. Having a script handle also makes it easy to [[terminate]] scripts at any time.</br></br>
+Since [[spawn]] creates a new [[Scheduler#Scheduled_Environment|scheduled environment]], having an excess of open [[Scheduler#Threads|threads]] can make the [[Scheduler#Scheduler|scheduler]] queue extremely long, significantly increasing the execution time of each [[Scheduler#Threads|thread]]. (it takes an extremely large amount of [[Scheduler#Threads|threads]], though)
+}}
+
+{{Note
+|user= Nelis75733126
+|timestamp= 20150825133900
+|text= If you have a local (private) function that you want to access from within code created with <sqf inline>spawn</sqf>, you can pass that private function to the code of <sqf inline>spawn</sqf>, like so:
+<sqf>
+_someFunction = {};
+[ _someFunction ] spawn { call( _this select 0 ) };
+</sqf>
+}}

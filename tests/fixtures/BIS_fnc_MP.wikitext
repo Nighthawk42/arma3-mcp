@@ -1,0 +1,174 @@
+{{TabView
+|selected= 2
+
+|title1= {{TabView/GameTitle|tkoh}}
+|content1=
+{{RV|type=function
+
+|game1= tkoh
+|version1= 1.00
+
+|gr1= Multiplayer
+
+|descr= Send function for remote execution (and executes locally if conditions are met).
+
+|s1= [params, functionName, target, isSpawn, isPersistent] call [[BIS_fnc_MP]]
+
+|p1= '''params''': [[Anything]] - function params
+
+|p2= '''functionName''': [[String]] - function name
+
+|p3= '''target''': [[Object]] - (Optional, default everyone) function will be executed only where unit is local
+
+|p4= '''isSpawn''': [[Boolean]] - (Optional, default [[false]]) true for calling function using 'spawn' command (otherwise 'call' is used)
+
+|p5= '''isPersistent''': [[Boolean]] - (Optional, default [[false]]) true for persistent call (will be called now and for every JIP client)
+
+|r1= [[Array]] - sent packet
+
+|x1= Log a message for every connected player:
+<sqf>["Imma spamming your log!", "BIS_fnc_log"] call BIS_fnc_MP;</sqf>
+
+|x2= Send a message containing "Hello World" to every player, including the ones who joins later using JIP:
+<sqf>[["Hello World"], "BIS_fnc_guiMessage", nil, true, true] call BIS_fnc_MP;</sqf>
+
+|seealso= [[remoteExec]] [[remoteExecCall]] [[BIS_fnc_MPexec]]
+}}
+
+|title2= {{TabView/GameTitle|arma3}}
+|content2=
+{{RV|type=function
+
+|game1= arma3
+|version1= 0.50
+
+|gr1= Multiplayer
+
+|descr= Send function for remote execution (and executes locally if conditions are met).
+{{Feature|warning|{{GVI|arma3|1.50}} This function has been replaced by [[remoteExec]] and [[remoteExecCall]]. While [[BIS_fnc_MP]] still works (to provide backwards compatibility), it is now deprecated and should no longer be used. See [[Arma 3: Remote Execution]] for more information.}}
+
+|s1= [params, functionName, target, isPersistent, isCall] call [[BIS_fnc_MP]]
+
+|p1= '''params''': [[Anything]] - function arguments. Variables can be local.
+
+|p2= '''functionName''': [[String]] - [[:Category:Functions|function]] or [[:Category:Scripting_Commands|scripting command]] name.
+
+|p3= '''target''':
+* [[Object]] - the function will be executed only where unit is local [default: everyone]
+* [[String]] - the function will be executed only where object or group defined by the variable with passed name is local
+* [[Boolean]] - [[true]] to execute on each machine (including the one where the function was called from), false to execute it on server only
+* [[Number]] - function will be executed only on client with the given [[owner]] ID
+* [[Side]] - function will be executed only on clients where the player is on the specified side
+* [[Group]] - function will be executed only on clients where the player is in the specified group
+* [[Array]] - array of targets of types listed above
+
+|p4= '''isPersistent''': [[Boolean]] - (Optional, default [[false]]) true for persistent call (will be called now and for every JIP client)
+
+|p5= '''isCall''': [[Boolean]] - (Optional, default [[false]]) true if function should be [[call|called]] on target machine, false to [[spawn]] it
+
+|r1= [[Array]] - sent packet
+
+|x1= <sqf>
+// logs a message for every player on the server.
+["Imma spamming your log!", "BIS_fnc_log"] call BIS_fnc_MP;
+</sqf>
+
+|x2= <sqf>
+// send a hint containing "Hello World" to every player, including the ones who joins later using JIP.
+["Hello World", "hint", true, true] call BIS_fnc_MP;
+</sqf>
+
+|x3= <sqf>
+// executes "playerConnected.sqf" script on server every time a player joins the game.
+[[[], "playerConnected.sqf"], "BIS_fnc_execVM", false, true] call BIS_fnc_MP;</sqf>
+
+|x4= <sqf>
+// adds action to every player including JIP. "..." = further optional arguments (see addAction)
+[[player], ["My Action Title", "myAction.sqf" /* etc */]], "addAction", true, true] call BIS_fnc_MP;
+</sqf>
+
+|seealso= [[BIS_fnc_MPexec]] [[Arma_3_Remote_Execution|Remote Execution]]
+}}
+
+}}
+
+{{Note
+|user= Fireball
+|timestamp= 20130402190200
+|text= Note that the function you provide as argument is *not* transferred to the remote client or server. 
+
+You will have to use either
+# functions defined in global namespace
+# functions defined depending on where you want to execute them; in server or/and client code if you separate it using conditions on [[isServer]] or [[local]] [[player]]
+# pre-defined BIS functions
+
+You can also execute scripts remotely like this:
+<sqf>["myScript.sqf", "BIS_fnc_execVM", true, true] call BIS_fnc_MP;</sqf>
+
+Or transfer code as parameter (not recommended) like that:
+<sqf>[{ hint "Hello World!"; }, "BIS_fnc_spawn", true, true] call BIS_fnc_MP;</sqf>
+}}
+
+{{Note
+|user= kylania
+|timestamp= 20130704212000
+|text= {{Feature | quote | One key note when designing a mission/script is to limit the amount of use you make of the isPersistent parameter. It is not recommended to use it often for vehicle creation, object creation, etc.<br>Each time you use the isPersistent parameter it adds to a BIS Logic which is used to sync all clients and new clients that join, excessive use of the command will make the logic build up and eventually you will cause the server to desync out because of the massive amount of data it has to send to all clients and JIP clients to try to keep them in sync.<br><br>It is highly recommended to make as little use as possible of the isPersistent option unless you have to for network performance sake.|{{Link|http://forums.bistudio.com/member.php?75622-Tonic-_|Tonic}}}}
+}}
+
+{{Note
+|user= Killzone_Kid
+|timestamp= 20131210133700
+|text= If you need to achieve a single global execution of an existing function on all PCs including your own, the syntax could not be any more simple than: [arguments, functionname] [[call]] [[BIS_fnc_MP]]; This is particularly useful with commands such as [[switchMove]] where the command effect is [[Multiplayer Scripting#Locality|local]]. 
+
+For example to make sure animation is played on every PC, first define a global function on every PC (maybe inside init.sqf):
+
+<sqf>
+switchMoveEverywhere = compileFinal "
+	_this select 0 switchMove (_this select 1);
+";
+</sqf>
+Then execute [[BIS_fnc_MP]] on only one PC which will in return execute ''switchMoveEverywhere'' function everywhere:
+
+<sqf>
+[
+	[
+		player,
+		"AmovPercMstpSrasWrflDnon_AadjPpneMstpSrasWrflDleft"
+	],
+	"switchMoveEverywhere"
+] call BIS_fnc_MP;
+</sqf>
+}}
+
+{{Note
+|user= Waffle SS.
+|timestamp= 20150523214700
+|text= Adding onto what Killzone_Kid said, a custom function isn't necessary when using only a single command.
+<sqf>
+[
+	[player, "AmovPercMstpSrasWrflDnon_AadjPpneMstpSrasWrflDleft"],
+	"switchMove"
+] call BIS_fnc_MP;
+</sqf>
+}}
+
+{{Note
+|user= Warka
+|timestamp= 20150608120800
+|text= From version 1.50 the function [[BIS_fnc_MP]] will use the engine based remote execution.
+* This will positively affect its performance, namely processing speed and amount of transferred data.
+* The syntax and functionality of [[BIS_fnc_MP]] will remain same to retain the backward compatibility.
+* To prevent abusing of the [[remoteExec]] and [[remoteExecCall]] commands the [[BIS_fnc_MP]] will use, the content authors will be able to define the operation modes as well as white-lists for commands/functions for clients and server separately.
+* White-lists defined in ''[[CfgRemoteExecCommands]]'' and ''[[CfgRemoteExecFunctions]]'' won't be supported from 1.48 as they will be replaced by the new structure more powerful and detailed structure: [[CfgRemoteExec]].
+|game= arma3
+|version= 1.50
+}}
+
+{{Note
+|user= Waffle SS.
+|timestamp= 20150720210700
+|text= Pay close attention to where and when you call [[BIS_fnc_MP]]. If you use it on the server during init, it will probably run before the player is loaded into the server, and the player behaves more like a JIP. Either waiting for the briefing to end ([[time]] > 0), or using the JIP parameter in [[BIS_fnc_MP]] are two ways of getting around this issue.
+}}
+
+
+{{GameCategory|arma3|Remote Execution}}

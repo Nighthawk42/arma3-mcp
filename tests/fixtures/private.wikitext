@@ -1,0 +1,116 @@
+{{RV|type=command
+
+|game1= ofp
+|version1= 1.00
+
+|game2= ofpe
+|version2= 1.00
+
+|game3= arma1
+|version3= 1.00
+
+|game4= arma2
+|version4= 1.00
+
+|game5= arma2oa
+|version5= 1.50
+
+|game6= tkoh
+|version6= 1.00
+
+|game7= arma3
+|version7= 0.50
+
+|gr1= Variables
+
+|descr= Sets a variable to the innermost scope. See also [[param]] and [[params]].
+{{Feature|warning|
+* [[private]] variables '''must''' start with an underscore: {{hl|c= [[private]] '''{{Color|red|_}}'''myVar1 = "myVar";}} - see [[Identifier]].
+* '''Always''' make your local variables '''private''' (through [[private]] or [[params]]) in order to avoid [[Variables#Scopes|overwriting a local variable of the same name]].
+}}
+
+|s1= [[private]] variableName
+
+|p1= variableName: [[String]] - e.g <sqf inline>"_myVar"</sqf>
+
+|r1= [[Nothing]]
+
+|s2= [[private]] variableNameList
+
+|p21= variableNameList: [[Array]] of [[String]]s - e.g <sqf inline>["_target", "_damage"]</sqf>
+
+|r2= [[Nothing]]
+
+|s3= [[private]] _identifier = value <span style="margin-left: 7em">'''{{Color|red|From {{arma2}} v1.00 to {{arma3}} v1.52:}}''' see '''[[local]]'''</span>
+
+|s3since= arma3 1.54
+
+|p41= _identifier: underscored [[Identifier|variable name]], for example <sqf inline>_myVar</sqf>
+
+|p42= value: [[Anything]]: value to assign to the variable
+
+|r3= [[Nothing]]
+
+|x1= <sqf>
+private _varname = "this is my new variable"; // since {{arma3}} v1.54
+
+// identical, but less performant
+private "_varname";
+_varname = "this is my new variable";
+</sqf>
+
+|x2= <sqf>
+private ["_varname1", "_varname2"];
+_varname1 = "variable 1";
+_varname2 = "variable 2";
+</sqf>
+
+|x3= <sqf>
+_lol = 123; call { hint str [_lol] }; // [123]
+_lol = 123; call { private "_lol"; hint str [_lol] }; // [any]
+</sqf>
+
+|x4= <sqf>
+_myvar = 123;
+systemChat str [_myvar];		// [123]
+call {
+	systemChat str [_myvar];	// [123]
+	private "_myvar";
+	systemChat str [_myvar];	// [any]
+	_myvar = 345;
+	systemChat str [_myvar];	// [345]
+};
+systemChat str [_myvar];		// [123]
+</sqf>
+
+|seealso= [[param]] [[params]] [[privateAll]] {{Link|Variables#Scopes}}
+}}
+
+{{Note
+|user= Faguss
+|timestamp= 20100804133000
+|text= The higher scope is also the script from which the function has been called.<br>
+in '''script2.sqf''':
+<sqf>_a = 2;</sqf>
+in '''script1.sqf''':
+<sqf>
+_a = 1;
+call compile preprocessFileLineNumbers "script2.sqf";
+hint format ["%1", _a];
+</sqf>
+Game will display 2.<br>
+Inserting <sqf inline>private "_a"</sqf> in the function prevents the change and so number 1 will be displayed on the screen.
+}}
+
+{{Note
+|user= DreadedEntity
+|timestamp= 20150225170600
+|text= Recursive loops require the use of [[private]]. Without it, your variables will be overwritten.
+}}
+
+{{Note
+|user= 654wak654
+|timestamp= 20180131103700
+|text= This command is ''similar'' to javascript's {{Link|https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let|let}} keyword.<br>
+'''EDIT:''' in the way that it scopes the variable to the innermost scope. Otherwise, let and private can behave differently - [[User:Lou Montana|Lou Montana]] ([[User talk:Lou Montana|talk]])
+}}

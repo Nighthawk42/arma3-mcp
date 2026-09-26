@@ -1,0 +1,118 @@
+{{RV|type=command
+
+|game1= ofp
+|version1= 1.00
+
+|game2= ofpe
+|version2= 1.00
+
+|game3= arma1
+|version3= 1.00
+
+|game4= arma2
+|version4= 1.00
+
+|game5= arma2oa
+|version5= 1.50
+
+|game6= tkoh
+|version6= 1.00
+
+|game7= arma3
+|version7= 0.50
+
+|eff= local
+
+|gr1= Interaction
+
+|gr2= Structured Text
+
+|gr3= Strings
+
+|descr= Outputs a hint message to the right of the screen (left of the screen in {{ofp}}) with a sound (except in {{arma1}}).
+To split message in multiple lines either use [[Structured Text]] or {{hl|\n}} (in lower case).
+
+{{Feature|arma1|{{arma1}} hints are silent. For later titles, see [[hintSilent]].}}
+
+|pr= {{GVI|ofp|1.00}} {{GVI|arma1|1.00}} {{GVI|arma2|1.00}} Hint messages that exceed the screen may lead to crashes.<br>
+{{GVI|arma3|1.00}} The game would not crash but suffer FPS drop / temporary freezing.
+
+|s1= [[hint]] message
+
+|p1= message: [[String]] or [[Structured Text]] - the message to display.
+
+|r1= [[Nothing]]
+
+|x1= <sqf>
+// outputs the following:
+// Press W to move forward.
+// Press S to move backwards.
+hint "Press W to move forward.\nPress S to move backwards."
+</sqf>
+
+|x2= <sqf>hint format ["Hello, %1!", name player];</sqf>
+
+|x3= <sqf>
+hint str count allPlayers;
+sleep 10;
+hintSilent ""; // hides the previous hint display
+</sqf>
+
+|x4= <sqf>hint parseText "<t size='2.0'>Large text</t>"; // displays text twice as large as the default one</sqf>
+
+
+|x5= <sqf>_txt = text "Red text, right align";
+_txt setAttributes ["color", "#FF0000", "align", "right"];
+hint composeText [_txt];</sqf>
+
+|seealso= [[hintC]] [[hintCadet]] [[hintSilent]] [[diag_log]]
+}}
+
+{{Note
+|user= DreadedEntity
+|timestamp= 20141020192700
+|text= Be careful when using hints to visualize the effects of commands using the Debug Console. Hint can accept an undefined variable and neither the error nor the hint is shown, the command simply fails. Also notice how the hint command should be <sqf inline>hint str _i;</sqf>:
+<sqf>
+for "_i" from 0 to 50 do
+{
+	hint _i;
+};
+</sqf>
+'''tested in A3 1.32.127785'''<br>
+<br>
+In a script, an "undefined variable" error will be shown as expected.
+}}
+
+{{Note
+|user= DreadedEntity
+|timestamp= 20141021230700
+|text= Contrary to previous games, Arma 3 will happily display hints that far exceed screen space.<br>
+However, as hints get longer, FPS suffers tremendously.<br>
+'''tested in Debug Console, A3 1.32.127785 with the following:'''
+<sqf>
+hint str ((nearestObjects [player, ["BUILDING"],  100]) - [player]); 0 spawn { sleep 5; systemChat str diag_fps; };
+sleep 10;
+hint str ((nearestObjects [player, ["BUILDING"], 1000]) - [player]); 0 spawn { sleep 5; systemChat str diag_fps; };
+</sqf>
+Results were: '''59.7015''' and '''5.17297''', respectively. Drawing a hint even longer than this, such as [[nearestObjects]] with a radius of 10,000 or 100,000 reduces your FPS so much Arma 3 '''appears''' to crash, though it doesn't.<br>
+<br>
+Unrelated: Hints will stay on screen for 30 seconds, then fade away over the course of 5 seconds. '''Tested with: A3 1.32.127785'''
+}}
+
+{{Note
+|user= DreadedEntity
+|timestamp= 20150217231400
+|text= An open dialog will pause the 30-second hint fade timer.
+'''(A3 1.38.128937)'''
+}}
+
+{{Note
+|user= Feint
+|timestamp= 20170325204700
+|text= The [[hint]] sound is audible only when you have the music volume turned up above 0 in the audio settings.
+Otherwise, it seems to act the same as [[hintSilent]].<br>
+<br>
+This is important because if you are running a [[hint]] that fires at 30 fps or more, the [[hint]] will slow down machines that have the music volume turned up but won't slow down machines that have the music volume turned off.<br>
+<br>
+Best practice is to use [[hint]] for an alert to the player and use [[hintSilent]] for a makeshift display of data to the player that is updated fairly often.
+}}

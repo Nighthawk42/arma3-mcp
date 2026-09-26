@@ -1,0 +1,44 @@
+{{RV|type=command
+
+|game1= arma2
+|version1= 1.00
+
+|game2= arma2oa
+|version2= 1.50
+
+|game3= tkoh
+|version3= 1.00
+
+|game4= arma3
+|version4= 0.50
+
+|arg= local
+
+|eff= local
+
+|gr1= GUI Control - ListNBox
+
+|descr= Adds a row of strings.
+
+|s1= [[lnbAddRow]] [ctrl, data]
+
+|p1= ctrl: [[Number]], [[Control]] since {{GVI|arma3|2.22}}
+
+|p2= data: [[Array]] of [[String]]s
+
+|r1= [[Number]] - row index
+
+|s2= ctrl [[lnbAddRow]] data
+
+|p21= ctrl: [[Control]]
+
+|p22= data: [[Array]] of [[String]]s
+
+|r2= [[Number]] - row index
+
+|x1= <sqf>lnbAddRow [1, ["COL1", "COL2"]];</sqf>
+
+|x2= <sqf>_ctrl lnbAddRow ["COL1", "COL2"];</sqf>
+
+|seealso= [[lnbAddArray]] [[lnbAddColumn]] [[lnbClear]] [[lnbColor]] [[lnbCurSelRow]] [[lnbData]] [[lnbDeleteColumn]] [[lnbDeleteRow]] [[lnbGetColumnsPosition]] [[lnbPicture]] [[lnbSetColor]] [[lnbSetColumnsPos]] [[lnbSetCurSelRow]] [[lnbSetData]] [[lnbSetPicture]] [[lnbSetText]] [[lnbSetValue]] [[lnbSize]] [[lnbText]] [[lnbValue]]
+}}

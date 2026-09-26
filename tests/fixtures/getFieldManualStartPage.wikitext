@@ -1,0 +1,22 @@
+{{RV|type=command
+
+|game1= arma3
+|version1= 1.18
+
+|gr1= System
+
+|descr= Returns array of the starting topic and hint the given field manual should display.
+
+|s1= [[getFieldManualStartPage]] display
+
+|p1= display: [[Display]]
+
+|r1= [[Array]] with [startingTopic, hint]
+
+* startingTopic: [[String]]
+* hint: [[String]]
+
+|x1= <sqf>getFieldManualStartPage (findDisplay 46); // returns ["", ""]</sqf>
+
+|seealso= [[:Category:Arma 3: Field Manual|Arma 3: Field Manual]]
+}}

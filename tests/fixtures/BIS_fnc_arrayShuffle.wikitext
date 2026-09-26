@@ -1,0 +1,19 @@
+{{RV|type=function
+
+|game1= arma3
+|version1= 0.58
+
+|gr1= Arrays
+
+|descr= Return a new array with randomized order of elements from input array.
+
+|s1= array call [[BIS_fnc_arrayShuffle]]
+
+|p1= array: [[Array]]
+
+|r1= [[Array]] - a new array instance
+
+|x1= <sqf>[1,2,3] call BIS_fnc_arrayShuffle; // can return [1,2,3] (the original order), [3,1,2], [2,3,1], [1,3,2], [2,1,3] or [3,2,1]</sqf>
+
+|seealso= [[sort]] [[BIS_fnc_sortBy]] [[random]]
+}}

@@ -1,0 +1,60 @@
+{{RV|type=command
+
+|game1= arma1
+|version1= 1.00
+
+|game2= arma2
+|version2= 1.00
+
+|game3= arma2oa
+|version3= 1.50
+
+|game4= tkoh
+|version4= 1.00
+
+|game5= arma3
+|version5= 0.50
+
+|gr1= Config
+
+|descr= Return root of config entries hierarchy.
+
+|s1= [[configFile]] 
+
+|r1= [[Config]]
+
+|x1= <sqf>_isMyClassActive = isClass (configFile >> "CfgPatches" >> "MyClass");</sqf>
+
+|seealso= [[missionConfigFile]] [[campaignConfigFile]]
+}}
+
+{{Note
+|user= ffur2007slx2_5
+|timestamp= 20140719200800
+|text= {{GVI|arma3|1.24}} It is recommended to use [[configClasses]] instead of [[BIS_fnc_getCfgSubClasses]] and [[BIS_fnc_uniqueClasses]] on subclasses collection or conditional selection.
+<sqf>
+_faces = "true" configClasses (configFile >> "CfgFaces");
+// same as:
+_faces = (configfile >> "CfgFaces") call BIS_fnc_getCfgSubClasses;
+</sqf>
+<sqf>
+//Extract all animals:
+animals = "configName _x isKindOf 'animal'" configClasses (configFile >> "CfgVehicles");
+// same as:
+animals = [];
+[
+	configFile >> "CfgVehicles",
+	{
+		if ((configName _this) isKindOf "animal") then {
+			animals set [count animals, _this]
+		}
+	}
+] call BIS_fnc_uniqueClasses;
+</sqf>
+
+Return nested subclasses, currently still [[BIS_fnc_returnChildren]]
+<sqf>
+// return all nested config classes
+[configFile >> "CfgFaces", 1, true, true] call BIS_fnc_returnChildren;
+</sqf>
+}}

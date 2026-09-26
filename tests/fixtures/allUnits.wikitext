@@ -1,0 +1,35 @@
+{{RV|type=command
+
+|game1= arma2
+|version1= 1.00
+
+|game2= arma2oa
+|version2= 1.50
+
+|game3= tkoh
+|version3= 1.00
+
+|game4= arma3
+|version4= 0.50
+
+|gr1= Object Detection
+
+|descr= Returns a list of all units, '''except agents, dead units or units waiting for respawn''', outside and inside vehicles that were created on the following sides [[east]], [[west]], [[independent]] and [[civilian]].
+{{Feature|arma3|To get all units of given side, use {{hl|[[units]] [[Side]]}}.}}
+
+|s1= [[allUnits]]
+
+|r1= [[Array]] of [[Object|object]]s
+
+|x1= <sqf>{ _x setDamage 0.5; _x groupChat "Braaains"; } forEach allUnits;</sqf>
+
+|x2= <sqf>allUnits apply { diag_log _x; };</sqf>
+
+|seealso= [[allGroups]] [[groups]] [[units]] [[vehicles]] [[entities]] [[agents]] [[playableUnits]] [[switchableUnits]] [[allPlayers]] [[allDead]] [[allDeadMen]] [[allUnitsUAV]] [[allCurators]] [[allObjects]] [[allMissionObjects]] [[allSimpleObjects]] [[allMines]]
+}}
+
+{{Note
+|user= Pierre MGI
+|timestamp= 20180906164300
+|text= It returns also BIS_SUPP_HQ created by support modules and headquarters Entity from HQ modules.
+}}

@@ -1,0 +1,13 @@
+node_modules/
+dist/
+*.tsbuildinfo
+# Built artifacts — rebuilt from data/corpus.json on install
+data/index.sqlite
+data/index.sqlite-*
+.cache/
+data/.ingest/
+# Classname data is derived from installed mods whose licences forbid us
+# redistributing it (RHS is CC BY-NC-ND). Generate locally with `npm run scan`.
+data/classes.json
+data/classes-curated.json.gz
+data/_ingest.log

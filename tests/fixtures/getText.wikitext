@@ -1,0 +1,55 @@
+{{RV|type=command
+
+|game1= arma1
+|version1= 1.00
+
+|game2= arma2
+|version2= 1.00
+
+|game3= arma2oa
+|version3= 1.50
+
+|game4= tkoh
+|version4= 1.00
+
+|game5= arma3
+|version5= 0.50
+
+|gr1= Config
+
+|descr= Extracts [[localize]]d text from config entry, if entry is subject to [[localize|localization]], otherwise returns text value.
+To obtain the translation key itself, see [[getTextRaw]].
+
+|s1= [[getText]] config
+
+|p1= config: [[Config]]
+
+|r1= [[String]] - text value
+
+|x1= <sqf>_text = getText (configFile >> "CfgVehicles" >> "Thing" >> "icon"); // "Get in %1 as Driver"</sqf>
+
+|seealso= [[configFile]] [[a / b]] [[configName]] [[count]] [[getArray]] [[getNumber]] [[inheritsFrom]] [[isArray]] [[isClass]] [[isNumber]] [[isText]] [[select]] [[getTextRaw]]
+}}
+
+{{Note
+|user= ffur2007slx2_5
+|timestamp= 201403280752
+|text= ({{arma3}} 1.14) It's recommended to use [[BIS_fnc_getCfgData]] or [[BIS_fnc_returnConfigEntry]] to get variable cfg data rather than conditioning via [[isNumber]], [[isText]], [[isArray]], [[getNumber]], [[getText]] and [[getArray]] combination.<br>
+Traditional workaround:
+<sqf>
+_cfg = configFile >> "CfgVehicles" >> _SomeAddonClassName >> "DestructionEffects" >> "Smoke1" >> "type";
+switch ( true ) do
+{
+	case (isNumber _cfg): {getNumber _cfg};
+	case (isText _cfg): {getText _cfg};
+	case (isArray _cfg): {getArray _cfg;};
+	default { nil };
+};
+</sqf>
+'''Recommended workaround:'''
+<sqf>(configFile >> "CfgVehicles" >> _SomeAddonClassName >> "DestructionEffects" >> "Smoke1" >> "type") call BIS_fnc_getCfgData;</sqf>
+To return default value once entry was not found, we can use [[BIS_fnc_returnConfigEntry]] instead of [[BIS_fnc_getCfgData]]. e.g.
+<sqf>[(configFile >> "CannonFire" >> "LightExp"),"lifeTime",0] call BIS_fnc_returnConfigEntry;//0.5</sqf>
+To compose collected [[String]] into [[Array]], use [[BIS_fnc_getCfgDataArray]] instead. E.g.
+<sqf>(configFile >> "CfgVehicles" >> _SomeAddonClassName >> "DestructionEffects" >> "Smoke1" >> "type") call BIS_fnc_getCfgDataArray;</sqf>
+}}

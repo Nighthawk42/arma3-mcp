@@ -1,0 +1,47 @@
+{
+  "name": "@nighthawk42/arma-mcp",
+  "version": "0.1.0",
+  "description": "MCP server exposing Bohemia Interactive engine scripting documentation (SQF commands, functions, event handlers and editing formats) across Operation Flashpoint and Arma 1/2/3, from a local hybrid vector + full-text index.",
+  "license": "MIT AND LicenseRef-BI-Wiki-NonCommercial",
+  "author": "Nighthawk42",
+  "type": "module",
+  "bin": {
+    "arma-mcp": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "ingest": "tsx scripts/ingest.ts",
+    "update": "tsx scripts/update.ts",
+    "index": "tsx scripts/build-index.ts",
+    "test": "vitest run",
+    "scan": "tsx scripts/scan-mods.ts",
+    "assemble": "tsx scripts/assemble.ts",
+    "smoke": "tsx scripts/smoke.ts",
+    "scan:curated": "tsx scripts/scan-mods.ts \"D:/SteamLibrary/steamapps/common/Arma 3\" --curated"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.7.6",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "better-sqlite3": "^12.4.1",
+    "env-paths": "^4.0.0",
+    "sqlite-vec": "^0.1.7-alpha.2",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^26.1.1",
+    "tsx": "^4.23.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10"
+  }
+}

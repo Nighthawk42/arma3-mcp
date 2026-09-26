@@ -1,0 +1,84 @@
+{{RV|type=command
+
+|game1= ofp
+|version1= 1.00
+
+|game2= ofpe
+|version2= 1.00
+
+|game3= arma1
+|version3= 1.00
+
+|game4= arma2
+|version4= 1.00
+
+|game5= arma2oa
+|version5= 1.50
+
+|game6= tkoh
+|version6= 1.00
+
+|game7= arma3
+|version7= 0.50
+
+|eff= global
+|arg= global
+
+|gr1= Positions
+
+|descr= Sets object position to format [[Position#PositionAGLS|PositionAGLS]] (over surface). The Z value is used to calculate the nearest surface below the provided position. If the surface is close, it uses the Z position of the surface. Otherwise, Z value becomes the offset from that surface.
+{{Feature| important | It is recommended to '''avoid''' this command when placing objects above other objects, due to the unpredictable behavior described above.}}
+
+|mp= {{Feature|arma1|{{Name|arma1|short}} 1.00 to 1.06: this command has local effect, but some simulation types do synchronise their changes over the network whilst others do not.<br>
+So far, the only known simulation type that doesn't synchronise its position over the net is "static" ({{hl|c= simulation{{=}}"house"}}).}}
+
+|s1= object [[setPos]] pos
+
+|p1= object: [[Object]]
+
+|p2= pos: [[Position#PositionAGL|PositionAGL]] or [[Position#Introduction|Position2D]] - if [[Position#Introduction|Position2D]], Z will be set to 0
+
+|r1= [[Nothing]]
+
+|x1= <sqf>
+player setPos [getPos player select 0, getPos player select 1, (getPos player select 2) +10];
+
+// the same as above using set (OFP:R v1.75)
+_pos = getPos player;
+_pos set [2, _pos select 2 + 10];
+player setPos _pos;
+
+// the same as above using modelToWorld (ArmA v1.00)
+player setPos (player modelToWorld [0,0,10]);
+
+// the same as above using vectorAdd (Arma 3 v1.22)
+player setPos (getPos player vectorAdd [0,0,10]);
+</sqf>
+
+|x2= <sqf>_obj setPos [getPos _obj select 0, getPos _obj select 1, -5];</sqf>
+
+|x3= <sqf>player setPos (getPos _obj);</sqf>
+
+|seealso= [[setPosASL]] [[getPos]] [[setVehiclePosition]] [[Position#setPosAGLS|setPosAGLS]]
+}}
+
+{{Note
+|user= Hduregger
+|timestamp= 20110206202000
+|text= Calling [[setPos]] on an object can cause the object's orientation to change. This depends on the terrain and/or objects below the object. This was tested by calling [[setPos]] on a test object with the position of a helicopter ([[modelToWorld]] with some offset). When flying over land the orientation of the test object would rapidly change depending on the slope of the ground and objects beneath it.
+Comment applicable to Ver '''1.96''' and '''earlier''':
+<sqf>obj1 setPos [x,y,z]</sqf>
+Will place most objects z metres above ground level (negative numbers for underground). But if obj1 is a trigger then it will be placed z metres above sea level. This can be very useful if you want to check a unit's height above sea level but it can be a problem if you want to move a trigger to create an explosion or a sound. To move a trigger to a location at ground level: 
+<sqf>
+triggername setPos [x,y,0];
+triggername setPos [x,y,abs(getPos triggername select 2)];
+</sqf>
+Note for {{Name|arma1|short}}: Using [[setPos]] for a trigger will work in exactly the same way that [[setPos]] works for other objects - namely that [[setPos]] [x,y,z] will place the trigger z metres above ground level. 
+[[setPos]] for static objects like an ammo crate do not work in MP.
+}}
+
+{{Note
+|user= Tankbuster
+|timestamp= 20121123130600
+|text= You can use [[getPos]] and [[setPos]] on triggers.
+}}
