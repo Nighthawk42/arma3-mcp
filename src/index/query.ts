@@ -5,7 +5,7 @@ import type { Db } from "./store.js";
 import type { Entry } from "../types.js";
 import type { GameId } from "../games.js";
 import type { ClassEntry } from "../config/classes.js";
-import { ftsQuery, fuse } from "./store.js";
+import { ftsQuery, fuse, splitIdentifier } from "./store.js";
 import { embed, toBlob } from "./embed.js";
 
 export interface EntryFilters {
@@ -36,10 +36,129 @@ export function suggestNames(db: Db, name: string, limit = 8): string[] {
 }
 
 /**
+ * Arm weights for descriptive (sentence) queries and the per-game prior.
+ * Tuned against tests/search-eval.json with `npm run eval`; change them only
+ * with that check in hand.
+ */
+export const SEARCH_TUNING = {
+  sentence: { name: 1, words: 1.5, lexical: 1, semantic: 2 },
+  identifier: { name: 3, words: 1, lexical: 1, semantic: 0.5 },
+  /** Score multiplier per additional game an entry is documented for. */
+  gamePrior: 0.04,
+};
+
+/** Words that carry no search intent. Kept out of FTS and out of query coverage. */
+const STOPWORDS = new Set([
+  "a", "an", "the", "to", "of", "on", "in", "at", "for", "from", "by", "with", "and", "or",
+  "is", "are", "be", "it", "its", "how", "do", "does", "i", "can", "what", "which", "that",
+  "this", "into", "onto", "some", "my", "me", "when", "is", "get", "set", "make", "use",
+]);
+
+/** Name fragments that say nothing about what an entry does. */
+const NAME_NOISE = new Set(["bis", "bin", "fnc"]);
+
+/** Crude suffix stripping — enough to equate "units"/"unit" and "spawning"/"spawn". */
+export function stem(word: string): string {
+  const w = word.toLowerCase();
+  if (w.length > 5 && w.endsWith("ing")) return w.slice(0, -3);
+  if (w.length > 4 && w.endsWith("ies")) return `${w.slice(0, -3)}y`;
+  if (w.length > 4 && w.endsWith("es") && /(sh|ch|x|ss)es$/.test(w)) return w.slice(0, -2);
+  if (w.length > 3 && w.endsWith("s") && !w.endsWith("ss")) return w.slice(0, -1);
+  if (w.length > 4 && w.endsWith("ed")) return w.slice(0, -2);
+  return w;
+}
+
+function queryTokens(query: string): string[] {
+  return (query.match(/[A-Za-z0-9]+/g) ?? []).map(stem);
+}
+
+/** A single identifier-shaped token ("setPosATL", "BIS_fnc_MP") rather than a sentence. */
+export function looksLikeIdentifier(query: string): boolean {
+  return /^[A-Za-z_][A-Za-z0-9_]*$/.test(query.trim());
+}
+
+interface EntryProfile {
+  id: number;
+  name: string;
+  /** Stemmed words of the identifier, minus BIS/fnc noise. */
+  words: string[];
+  /** Games it is documented for — a proxy for how fundamental it is. */
+  gameCount: number;
+}
+
+const profiles = new WeakMap<Db, EntryProfile[]>();
+
+function entryProfiles(db: Db): EntryProfile[] {
+  let cached = profiles.get(db);
+  if (!cached) {
+    const rows = db.prepare("select id, name, games from entries").all() as Array<{
+      id: number;
+      name: string;
+      games: string;
+    }>;
+    cached = rows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      words: [
+        ...new Set(
+          splitIdentifier(r.name)
+            .split(" ")
+            .map(stem)
+            .filter((w) => w && !NAME_NOISE.has(w)),
+        ),
+      ],
+      gameCount: (JSON.parse(r.games) as unknown[]).length,
+    }));
+    profiles.set(db, cached);
+  }
+  return cached;
+}
+
+/**
+ * Entries whose name reads like the question.
+ *
+ * "delete a vehicle" should find `deleteVehicle`, and "shuffle an array"
+ * `BIS_fnc_arrayShuffle`: the name's own words are the strongest evidence a
+ * descriptive query has, stronger than any overlap with the prose. Ranked by
+ * how much of the name the query covers times how much of the query's content
+ * the name covers, so `deleteVehicle` beats `deleteVehicleCrew`.
+ */
+function nameWordIds(db: Db, query: string, pool: number): number[] {
+  const tokens = queryTokens(query);
+  const all = new Set(tokens);
+  const content = new Set(tokens.filter((t) => !STOPWORDS.has(t)));
+  if (content.size === 0) return [];
+  const scored: Array<{ id: number; score: number; gameCount: number; length: number }> = [];
+  for (const p of entryProfiles(db)) {
+    if (p.words.length === 0) continue;
+    const hits = p.words.filter((w) => all.has(w));
+    const contentHits = hits.filter((w) => content.has(w));
+    // One shared generic word ("unit", "vehicle", "script") is not evidence
+    // when the question has more to say; require two of its content words.
+    if (contentHits.length < Math.min(2, content.size)) continue;
+    const score = (hits.length / p.words.length) * (contentHits.length / content.size);
+    scored.push({ id: p.id, score, gameCount: p.gameCount, length: p.name.length });
+  }
+  scored.sort((a, b) => b.score - a.score || b.gameCount - a.gameCount || a.length - b.length);
+  return scored.slice(0, pool).map((s) => s.id);
+}
+
+/** FTS5 query over the content words only; stopwords just add noise to an OR query. */
+function contentFtsQuery(query: string): string {
+  const words = (query.match(/[A-Za-z0-9_]+/g) ?? []).filter((w) => !STOPWORDS.has(w.toLowerCase()));
+  return ftsQuery(words.join(" ") || query);
+}
+
+/**
  * Hybrid search over wiki entries.
  *
- * Three arms, fused with RRF: exact/prefix name match, FTS5 lexical, and vector
- * similarity. Filters are applied after fusion so the arms stay comparable.
+ * Arms, fused with weighted RRF: identifier prefix match, name-word coverage,
+ * FTS5 lexical and vector similarity. Their weights depend on the query's
+ * shape — an identifier-like query is answered by the name arms, a sentence
+ * by the descriptive ones. An exact name match is always first, and a small
+ * prior favours entries documented across more games, which is what separates
+ * `createVehicle` from `createVehicleCrew`. Filters apply after fusion so the
+ * arms stay comparable.
  */
 export async function searchEntries(
   db: Db,
@@ -48,16 +167,22 @@ export async function searchEntries(
 ): Promise<Array<{ entry: Entry; score: number; matched: string[] }>> {
   const limit = filters.limit ?? 10;
   const pool = Math.max(limit * 8, 60);
+  const trimmed = query.trim();
+  const identifier = looksLikeIdentifier(trimmed);
 
-  const nameIds = (
-    db
-      .prepare(
-        "select id from entries where name like ? collate nocase order by length(name) limit ?",
-      )
-      .all(`${query}%`, pool) as Array<{ id: number }>
+  const exactIds = (
+    db.prepare("select id from entries where name = ? collate nocase").all(trimmed) as Array<{ id: number }>
   ).map((r) => r.id);
 
-  const match = ftsQuery(query);
+  const prefixIds = (
+    db
+      .prepare("select id from entries where name like ? collate nocase order by length(name) limit ?")
+      .all(`${trimmed}%`, pool) as Array<{ id: number }>
+  ).map((r) => r.id);
+
+  const wordIds = nameWordIds(db, trimmed, pool);
+
+  const match = contentFtsQuery(trimmed);
   const ftsIds = match
     ? (
         db
@@ -68,25 +193,34 @@ export async function searchEntries(
 
   let vecIds: number[] = [];
   try {
-    const [vector] = await embed([query]);
+    const [vector] = await embed([trimmed]);
     vecIds = (
       db
-        .prepare(
-          "select rowid as id from entries_vec where embedding match ? order by distance limit ?",
-        )
-        .all(toBlob(vector), pool) as Array<{ id: number }>
+        .prepare("select rowid as id from entries_vec where embedding match ? order by distance limit ?")
+        .all(toBlob(vector!), pool) as Array<{ id: number }>
     ).map((r) => r.id);
   } catch {
-    // Embedding is optional at query time; lexical arms still answer.
+    // Embedding is optional at query time; the lexical arms still answer.
   }
 
-  // Exact identifier lookups dominate real usage, so the name arm leads; the
-  // semantic arm exists to answer descriptive questions the others cannot.
+  const w = identifier ? SEARCH_TUNING.identifier : SEARCH_TUNING.sentence;
   const scores = fuse([
-    { name: "name", ids: nameIds, weight: 3 },
-    { name: "lexical", ids: ftsIds, weight: 1.5 },
-    { name: "semantic", ids: vecIds, weight: 1 },
+    { name: "name", ids: prefixIds, weight: w.name },
+    { name: "words", ids: wordIds, weight: w.words },
+    { name: "lexical", ids: ftsIds, weight: w.lexical },
+    { name: "semantic", ids: vecIds, weight: w.semantic },
   ]);
+
+  const gameCounts = new Map(entryProfiles(db).map((p) => [p.id, p.gameCount]));
+  for (const [id, s] of scores) {
+    s.score *= 1 + SEARCH_TUNING.gamePrior * ((gameCounts.get(id) ?? 1) - 1);
+  }
+  for (const id of exactIds) {
+    const s = scores.get(id) ?? { score: 0, matched: [] };
+    s.score += 1000;
+    s.matched.unshift("exact");
+    scores.set(id, s);
+  }
 
   const ranked = [...scores.entries()].sort((a, b) => b[1].score - a[1].score);
   const out: Array<{ entry: Entry; score: number; matched: string[] }> = [];

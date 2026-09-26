@@ -9,7 +9,7 @@
 import fs from "node:fs";
 import zlib from "node:zlib";
 import path from "node:path";
-import { openDatabase, createSchema, entryText, classText, transaction } from "../src/index/store.js";
+import { openDatabase, createSchema, entryText, classText, embeddingText, transaction } from "../src/index/store.js";
 import { allowModelDownload, embed, MODEL_DIR, toBlob } from "../src/index/embed.js";
 
 // The only step that may fetch the embedding model; the server stays offline.
@@ -63,7 +63,7 @@ if (fs.existsSync(corpusFile)) {
         insExample.run(exampleId, id, ex.code);
         insExampleFts.run(exampleId, `${entry.name} ${ex.code}`);
       }
-      texts.push(`${entry.name}. ${entry.description}`.slice(0, 512));
+      texts.push(embeddingText(entry));
     });
   });
   entryCount = corpus.entries.length;

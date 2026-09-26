@@ -149,6 +149,16 @@ export function entryText(entry: Entry): string {
     .slice(0, 4000);
 }
 
+/**
+ * The text an entry is embedded by. The identifier is spelled out as words
+ * ("set Fuel"), because to the model `setFuel` is one opaque token and a
+ * question like "refuel a vehicle" would never land near it.
+ */
+export function embeddingText(entry: Entry): string {
+  const words = splitIdentifier(entry.name.replace(/^BI[SN]_fnc_/i, ""));
+  return `${words} (${entry.name}): ${entry.description}`.slice(0, 512);
+}
+
 export function classText(cls: ClassEntry): string {
   return [
     cls.name,

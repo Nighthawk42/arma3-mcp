@@ -27,7 +27,8 @@
     "scan": "tsx scripts/scan-mods.ts",
     "assemble": "tsx scripts/assemble.ts",
     "smoke": "tsx scripts/smoke.ts",
-    "scan:curated": "tsx scripts/scan-mods.ts \"D:/SteamLibrary/steamapps/common/Arma 3\" --curated"
+    "scan:curated": "tsx scripts/scan-mods.ts \"D:/SteamLibrary/steamapps/common/Arma 3\" --curated",
+    "eval": "tsx scripts/eval-search.ts"
   },
   "dependencies": {
     "@huggingface/transformers": "^3.7.6",
