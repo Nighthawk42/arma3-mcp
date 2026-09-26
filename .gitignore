@@ -11,3 +11,5 @@ data/.ingest/
 data/classes.json
 data/classes-curated.json.gz
 data/_ingest.log
+# Embedding model cache (Apache-2.0, re-downloadable by `npm run index`)
+data/models/

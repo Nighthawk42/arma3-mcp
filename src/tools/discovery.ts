@@ -6,7 +6,7 @@
  */
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { Database as Db } from "better-sqlite3";
+import type { Db } from "../index/store.js";
 import {
   listGroups,
   browseGroup,

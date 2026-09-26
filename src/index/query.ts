@@ -1,7 +1,7 @@
 /**
  * Read-side queries against the local index. No network, ever.
  */
-import type { Database as Db } from "better-sqlite3";
+import type { Db } from "./store.js";
 import type { Entry } from "../types.js";
 import type { GameId } from "../games.js";
 import type { ClassEntry } from "../config/classes.js";

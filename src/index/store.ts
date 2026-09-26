@@ -12,9 +12,8 @@
  * Note on binding: sqlite-vec rejects a plain JS number as a vec0 rowid, so
  * every rowid crossing that boundary is passed as a BigInt.
  */
-import Database from "better-sqlite3";
-import type { Database as Db } from "better-sqlite3";
-import * as sqliteVec from "sqlite-vec";
+import { DatabaseSync } from "node:sqlite";
+import { getLoadablePath } from "sqlite-vec";
 import type { Entry } from "../types.js";
 import type { ClassEntry } from "../config/classes.js";
 import { EMBEDDING_DIMS } from "./embed.js";
@@ -27,11 +26,31 @@ export interface SearchHit {
   matched: string[];
 }
 
+/**
+ * Node's built-in SQLite. It replaced better-sqlite3 because a native Node
+ * addon is compiled against one Node ABI and fails to load after every Node
+ * upgrade. sqlite-vec is still native, but as a SQLite loadable extension it
+ * does not depend on the Node version at all.
+ */
+export type Db = DatabaseSync;
+
 export function openDatabase(file: string, readonly = false): Db {
-  const db = new Database(file, { readonly });
-  sqliteVec.load(db);
-  db.pragma("journal_mode = WAL");
+  const db = new DatabaseSync(file, { readOnly: readonly, allowExtension: true });
+  db.loadExtension(getLoadablePath());
   return db;
+}
+
+/** Runs `fn` in one transaction, rolling back if it throws. */
+export function transaction<T>(db: Db, fn: () => T): T {
+  db.exec("begin");
+  try {
+    const result = fn();
+    db.exec("commit");
+    return result;
+  } catch (error) {
+    db.exec("rollback");
+    throw error;
+  }
 }
 
 export function createSchema(db: Db): void {

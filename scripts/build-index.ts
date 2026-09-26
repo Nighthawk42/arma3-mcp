@@ -9,8 +9,11 @@
 import fs from "node:fs";
 import zlib from "node:zlib";
 import path from "node:path";
-import { openDatabase, createSchema, entryText, classText } from "../src/index/store.js";
-import { embed, toBlob } from "../src/index/embed.js";
+import { openDatabase, createSchema, entryText, classText, transaction } from "../src/index/store.js";
+import { allowModelDownload, embed, MODEL_DIR, toBlob } from "../src/index/embed.js";
+
+// The only step that may fetch the embedding model; the server stays offline.
+allowModelDownload();
 import type { Corpus } from "../src/types.js";
 import type { ClassEntry } from "../src/config/classes.js";
 
@@ -40,7 +43,7 @@ if (fs.existsSync(corpusFile)) {
   let exampleId = 0;
 
   const texts: string[] = [];
-  db.transaction(() => {
+  transaction(db, () => {
     corpus.entries.forEach((entry, i) => {
       const id = i + 1;
       insEntry.run(
@@ -62,7 +65,7 @@ if (fs.existsSync(corpusFile)) {
       }
       texts.push(`${entry.name}. ${entry.description}`.slice(0, 512));
     });
-  })();
+  });
   entryCount = corpus.entries.length;
   setMeta.run("corpus.generatedAt", corpus.generatedAt);
   setMeta.run("corpus.watermark", corpus.watermark);
@@ -70,14 +73,14 @@ if (fs.existsSync(corpusFile)) {
   // Vector arm — wiki prose only. Classnames are identifiers and are far better
   // served by the lexical arm, so embedding 100k of them would cost an hour of
   // CPU to make search worse.
-  console.error(`embedding ${texts.length} wiki entries...`);
+  console.error(`embedding ${texts.length} wiki entries (model cache: ${MODEL_DIR})...`);
   const insVec = db.prepare("insert into entries_vec(rowid, embedding) values (?, ?)");
   const BATCH = 64;
   for (let i = 0; i < texts.length; i += BATCH) {
     const vectors = await embed(texts.slice(i, i + BATCH));
-    db.transaction(() => {
+    transaction(db, () => {
       vectors.forEach((v, j) => insVec.run(BigInt(i + j + 1), toBlob(v)));
-    })();
+    });
     process.stderr.write(`  ${Math.min(i + BATCH, texts.length)}/${texts.length}\r`);
   }
   console.error("");
@@ -105,7 +108,7 @@ if (fs.existsSync(classesFile)) {
     "insert into classes(id, name, root, parent, displayName, scope, mod, addon, data) values (?,?,?,?,?,?,?,?,?)",
   );
   const insFts = db.prepare("insert into classes_fts(rowid, name, body) values (?,?,?)");
-  db.transaction(() => {
+  transaction(db, () => {
     payload.classes.forEach((cls, i) => {
       const id = i + 1;
       insClass.run(
@@ -121,7 +124,7 @@ if (fs.existsSync(classesFile)) {
       );
       insFts.run(id, cls.name, classText(cls));
     });
-  })();
+  });
   classCount = payload.classes.length;
   setMeta.run("classes.generatedAt", payload.generatedAt);
   setMeta.run("classes.source", path.basename(classesFile));

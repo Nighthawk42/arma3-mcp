@@ -14,7 +14,7 @@
  * because SQF is full of local variables and mod-supplied functions that are
  * perfectly valid and will never be in the wiki.
  */
-import type { Database as Db } from "better-sqlite3";
+import type { Db } from "../index/store.js";
 import type { Entry } from "../types.js";
 import type { GameId } from "../games.js";
 import { GAMES } from "../games.js";
