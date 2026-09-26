@@ -18,6 +18,7 @@ import {
   findSubclasses,
 } from "../index/query.js";
 import { validateSqf } from "../sqf/validate.js";
+import { READ_ONLY } from "./annotations.js";
 import { GAME_IDS, type GameId } from "../games.js";
 import { ATTRIBUTION, gameLabel, renderClassLine, renderEntryLine } from "../format.js";
 
@@ -29,6 +30,7 @@ export function registerDiscoveryTools(server: McpServer, db: Db): void {
     "list_groups",
     {
       title: "List command groups",
+      annotations: READ_ONLY,
       description:
         "List the groups commands and functions are organised into (Multiplayer, Object Manipulation, Math, ...) with counts. Use it to discover what exists in an area before searching by name.",
       inputSchema: { game: gameEnum.optional() },
@@ -50,6 +52,7 @@ export function registerDiscoveryTools(server: McpServer, db: Db): void {
     "browse_group",
     {
       title: "Browse a command group",
+      annotations: READ_ONLY,
       description:
         "List every command and function in one group, optionally filtered to a game. Pair with list_groups to explore an unfamiliar area of the API.",
       inputSchema: {
@@ -77,6 +80,7 @@ export function registerDiscoveryTools(server: McpServer, db: Db): void {
     "added_in_version",
     {
       title: "What a version introduced",
+      annotations: READ_ONLY,
       description:
         "List commands and functions introduced in a given version of a game, or list the versions themselves when no version is given. Answers 'what did Arma 3 2.14 add?' and 'how new is this command?'.",
       inputSchema: {
@@ -119,6 +123,7 @@ export function registerDiscoveryTools(server: McpServer, db: Db): void {
     "search_examples",
     {
       title: "Search example code",
+      annotations: READ_ONLY,
       description:
         "Search the wiki's example snippets themselves rather than the surrounding documentation. Use it to see how a command is actually written in practice.",
       inputSchema: {
@@ -145,6 +150,7 @@ export function registerDiscoveryTools(server: McpServer, db: Db): void {
     "list_mods",
     {
       title: "List indexed mods",
+      annotations: READ_ONLY,
       description:
         "List the mods scanned into the classname index, with how many classes each contributes. Use it to see what content is available before searching for classnames.",
       inputSchema: { limit: z.number().int().min(1).max(300).optional() },
@@ -168,6 +174,7 @@ export function registerDiscoveryTools(server: McpServer, db: Db): void {
     "list_config_roots",
     {
       title: "List config roots",
+      annotations: READ_ONLY,
       description:
         "List the config roots in the classname index (CfgVehicles, CfgWeapons, CfgMagazines, ...) with counts, for use as the `root` filter on search_classes.",
       inputSchema: {},
@@ -185,6 +192,7 @@ export function registerDiscoveryTools(server: McpServer, db: Db): void {
     "find_subclasses",
     {
       title: "Find everything inheriting a class",
+      annotations: READ_ONLY,
       description:
         "Walk the config inheritance tree downward and list every class descending from a base class — for example every vehicle inheriting Tank_F. Filter by mod, or to editor-usable classes only.",
       inputSchema: {
@@ -216,6 +224,7 @@ export function registerDiscoveryTools(server: McpServer, db: Db): void {
     "validate_sqf",
     {
       title: "Check an SQF snippet",
+      annotations: READ_ONLY,
       description:
         "Check SQF code against the documentation: flags commands that do not exist, commands unavailable in the target game, commands with a global effect (a common multiplayer mistake), and deprecated commands. Identifiers it does not recognise are listed rather than reported as errors, since local variables and mod functions are legitimately absent from the wiki.",
       inputSchema: {

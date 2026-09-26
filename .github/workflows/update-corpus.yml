@@ -32,11 +32,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - run: npm ci
@@ -51,8 +51,11 @@ jobs:
           restore-keys: ingest-checkpoints-
 
       - name: Update corpus
+        env:
+          # Via env, never interpolated into the script.
+          FULL: ${{ inputs.full }}
         run: |
-          if [ "${{ inputs.full }}" = "true" ] || [ ! -f data/corpus.json ]; then
+          if [ "$FULL" = "true" ] || [ ! -f data/corpus.json ]; then
             echo "Running full ingest (resumable)..."
             npm run ingest
           else

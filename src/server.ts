@@ -37,6 +37,7 @@ import {
 } from "./format.js";
 import { INDEXED_ROOTS } from "./config/classes.js";
 import { registerDiscoveryTools } from "./tools/discovery.js";
+import { READ_ONLY } from "./tools/annotations.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
@@ -59,6 +60,7 @@ export function createServer(db: Db): McpServer {
     "list_games",
     {
       title: "List games",
+      annotations: READ_ONLY,
       description:
         "List the Bohemia Interactive games covered by this server, with how many documented commands and functions each one has. Use the returned ids as the `game` filter on other tools.",
       inputSchema: {},
@@ -84,6 +86,7 @@ export function createServer(db: Db): McpServer {
     "search",
     {
       title: "Search scripting documentation",
+      annotations: READ_ONLY,
       description:
         "Search SQF commands, functions and event handlers by name or by what they do. Combines exact-name, full-text and semantic matching. Filter to one game with `game`, or one kind of entry with `type`.",
       inputSchema: {
@@ -135,6 +138,7 @@ export function createServer(db: Db): McpServer {
     "get_command",
     {
       title: "Get a scripting command",
+      annotations: READ_ONLY,
       description:
         "Full documentation for one SQF scripting command: every syntax, its parameters and return types, argument/effect locality, multiplayer notes and examples. Pass `game` to confirm availability in that title.",
       inputSchema: {
@@ -149,6 +153,7 @@ export function createServer(db: Db): McpServer {
     "get_function",
     {
       title: "Get a scripting function",
+      annotations: READ_ONLY,
       description:
         "Full documentation for one BI-supplied function (BIS_fnc_*, and equivalents), including its call syntax, parameters and examples.",
       inputSchema: {
@@ -163,6 +168,7 @@ export function createServer(db: Db): McpServer {
     "get_event_handler",
     {
       title: "Get an event handler",
+      annotations: READ_ONLY,
       description:
         "Documentation for one event handler, including the arguments it passes to its code and which games support it.",
       inputSchema: {
@@ -177,6 +183,7 @@ export function createServer(db: Db): McpServer {
     "compare_games",
     {
       title: "Compare availability across games",
+      annotations: READ_ONLY,
       description:
         "Show which games a command or function exists in and the version of each that introduced it. Answers 'is this safe to use in Arma 2?' and 'when did this land?'.",
       inputSchema: { name: z.string() },
@@ -214,6 +221,7 @@ export function createServer(db: Db): McpServer {
     "search_classes",
     {
       title: "Search config classnames",
+      annotations: READ_ONLY,
       description:
         "Search config classnames scanned from the local Arma install and its mods (CfgVehicles, CfgWeapons, CfgMagazines and more). Use it to find the exact classname to pass to createVehicle, or to see what a mod adds. Matching is lexical: classnames are identifiers, so exact and partial name matching beats semantic similarity here.",
       inputSchema: {
@@ -251,6 +259,7 @@ export function createServer(db: Db): McpServer {
     "get_class",
     {
       title: "Get a config class",
+      annotations: READ_ONLY,
       description:
         "Details for one config classname: its inheritance chain, display name, scope, faction and source mod, plus the classes that inherit from it.",
       inputSchema: {

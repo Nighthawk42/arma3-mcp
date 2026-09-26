@@ -20,6 +20,8 @@ Both are folded into `data/index.sqlite` by `scripts/build-index.ts`.
 npm run build      # tsc -> dist/
 npm run dev        # run the server from source
 npm test           # vitest (parser fixtures in tests/fixtures/)
+npm run typecheck  # tsc over src, scripts and tests
+npm run eval       # search relevance: hit@1 / hit@3 / MRR over tests/search-eval.json
 npm run ingest     # full wiki ingest — slow, resumable, safe to re-run
 npm run assemble   # rebuild corpus.json from ingest checkpoints
 npm run update     # incremental wiki update via recentchanges
@@ -94,7 +96,8 @@ rights to do so. See `data/NOTICE.md` for the sourced quotations.
 
 ## Conventions
 
-- ESM, Node 20+, strict TypeScript, `snake_case` tool names, zod-validated input.
+- ESM, Node 22.13+ (`node:sqlite`), strict TypeScript, `snake_case` tool names, zod-validated input.
+- Every tool declares `annotations: READ_ONLY` (`src/tools/annotations.ts`): read-only and closed-world, since the server never touches the network.
 - Tool responses are markdown text — the format every client renders.
 - Keep stdout clean in server code: the stdio transport owns it, log to stderr.
 - Game ids are exactly the wiki's own codes. Never invent aliases; add them to

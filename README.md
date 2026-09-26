@@ -42,7 +42,7 @@ onward) directly from the source.
 | `search` | Find commands/functions by name or by what they do |
 | `get_command` | Full docs for one command: syntaxes, params, locality, examples |
 | `get_function` | Full docs for one function (`BIS_fnc_*`) |
-| `get_event_handler` | Docs for one event handler |
+| `get_event_handler` | Docs for one event handler: arguments, locality, the command that adds it |
 | `compare_games` | Availability and introduction version across all games |
 
 **Discovery**
@@ -68,11 +68,14 @@ onward) directly from the source.
 
 | Tool | Purpose |
 | --- | --- |
-| `validate_sqf` | Check a snippet: unknown commands, wrong game, global-effect and deprecation warnings |
+| `validate_sqf` | Check a snippet: unknown commands, wrong game or version, global-effect and deprecation warnings |
 
 `validate_sqf` is the one that earns its keep in practice — it turns the corpus
-into a linter that catches "this command does not exist in Arma 2" and "this has
-a global effect, so calling it on every client applies it N times".
+into a linter that catches "this command does not exist in Arma 2", "this was
+added in 2.14 but you target 2.10" (pass `gameVersion`) and "this has a global
+effect, so calling it on every client applies it N times".
+
+Every tool is read-only and offline, and says so in its MCP annotations.
 
 Game is a **parameter**, not a separate tool set — one wiki page documents a
 command across several games at once, so per-game tools would surface the same
@@ -80,60 +83,66 @@ record many times and bloat the tool list.
 
 ## Setup
 
+Requires **Node 22.13+** (it uses the built-in `node:sqlite`, so there is no
+native addon to rebuild when Node is upgraded).
+
 ```bash
-npm install
-npm run ingest    # fetch the wiki corpus (~100 requests, resumable — see below)
-npm run scan -- "D:/SteamLibrary/steamapps/common/Arma 3"   # classnames
-npm run index     # build data/index.sqlite
+npm ci
+npm run index     # build data/index.sqlite from the tracked corpus (~1 min)
+npm run build
 npm run smoke     # verify every tool answers
+```
+
+The wiki corpus is committed, so no ingest is needed to get started. `index`
+also downloads the embedding model once (~23 MB) into `data/models/`; the
+server only ever loads it from there. Without it, search still works on its
+lexical arms and logs one line saying semantic search is off.
+
+Classnames come from your own install:
+
+```bash
+npm run scan -- "C:/Program Files (x86)/Steam/steamapps/common/Arma 3"   # or set ARMA3_PATH
+npm run index
 ```
 
 `scan` accepts `--curated` to cover only the widely used mods (base game, CBA,
 CUP, RHS, ACE and friends) instead of everything installed. Both stay local.
-
 The scripting tools work without `scan`; the class tools report that no index is
 present until you run it.
 
-Then point your MCP client at `dist/index.js` (after `npm run build`) or
-`src/index.ts` via `tsx`.
+### Registering with an MCP client
 
-Set `ARMA_MCP_INDEX` to use an index from another location.
+Any client that takes an `mcpServers` entry:
 
-### Registering with local tools
-
-`scripts/register-mcp.py` merges an `arma-mcp` entry into the MCP config of
-every supported tool on the machine, backing each file up first. It is
-idempotent — re-run it after moving the project or rebuilding.
-
-```bash
-python scripts/register-mcp.py --dry-run   # show what would change
-python scripts/register-mcp.py             # apply
+```json
+{
+  "mcpServers": {
+    "arma-mcp": { "command": "node", "args": ["/path/to/arma3-mcp/dist/index.js"] }
+  }
+}
 ```
 
-| Tool | Config |
+Claude Code: `claude mcp add arma-mcp --scope user -- node /path/to/arma3-mcp/dist/index.js`.
+
+Use an absolute path to `node` if your client is launched from a GUI: those do
+not always inherit your shell `PATH`. Windows paths in a TOML config (Codex)
+must be single-quoted literal strings, or the backslashes become escapes.
+
+| Variable | Effect |
 | --- | --- |
-| Claude Code | `~/.claude.json` — use `claude mcp add`, not the script |
-| Codex | `~/.codex/config.toml` |
-| Antigravity | `~/.gemini/antigravity/mcp_config.json` |
-| omp | `~/.omp/agent/mcp.json` |
-
-```bash
-claude mcp add arma-mcp --scope user -- "D:\Dev\nodejs\node.exe" "E:\Projects\arma3-mcp\dist\index.js"
-```
-
-Absolute paths throughout, deliberately: GUI-launched IDEs do not inherit a
-shell `PATH`, so a bare `node` can fail there while working fine in a terminal.
-
-Windows paths in `config.toml` must be TOML **literal** strings (single
-quotes). In a basic `"..."` string the backslashes are escapes, and
-`D:\Dev\nodejs\node.exe` silently becomes a string containing a newline.
+| `ARMA_MCP_INDEX` | Use an index from another location |
+| `ARMA_MCP_MODEL_DIR` | Embedding model cache (default `data/models`) |
+| `ARMA_MCP_INTERVAL_MS` | Ingest pacing between wiki requests (default 5000) |
 
 ## Retrieval
 
 Hybrid, because pure vector search is the wrong tool for half of these queries.
 
-- **Wiki entries** — exact/prefix name matching, FTS5, and vector similarity
-  over the prose, fused with weighted Reciprocal Rank Fusion. Embeddings are
+- **Wiki entries** — exact/prefix name matching, name-word coverage ("delete a
+  vehicle" → `deleteVehicle`), FTS5, and vector similarity over the prose,
+  fused with weighted Reciprocal Rank Fusion. An exact identifier always ranks
+  first, arm weights shift with the query's shape (identifier or sentence), and
+  a small prior favours entries documented across more games. Embeddings are
   `all-MiniLM-L6-v2` running locally via Transformers.js (no API key).
 - **Classnames** — lexical only. `rhs_2s1_tv` and `rhs_2s1_vmf` are
   near-identical to an embedding model but mean different vehicles, so exact
@@ -144,6 +153,11 @@ Arms are weighted rather than equal. A literal name hit is far stronger evidence
 than an FTS token overlap: searching `T-72` tokenises to `t` + `72`, which
 matches the unrelated `OZM-72` mine while missing `T-72B`. Weighting lets the
 precise arm win.
+
+Ranking is measured, not eyeballed: `npm run eval` scores 50 realistic queries
+from `tests/search-eval.json` (hit@1, hit@3, MRR), and the test suite enforces
+the recorded floor whenever a local index exists. Change `SEARCH_TUNING` in
+`src/index/query.ts` only with that check in hand.
 
 ## Ingest, and being a good neighbour
 
@@ -188,6 +202,7 @@ data/corpus.json               wiki entries — tracked, diffable
 data/classes.json              local scan — untracked (licensing; see NOTICE.md)
 data/classes-curated.json.gz   curated local scan — untracked, same reason
 data/index.sqlite              built artifact — untracked, `npm run index`
+data/models/                   embedding model cache — untracked, fetched by `npm run index`
 data/.ingest/                  resume checkpoints — untracked
 ```
 

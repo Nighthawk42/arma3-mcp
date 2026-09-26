@@ -57,7 +57,7 @@ Scanning your own installation for your own use is a different thing entirely,
 and is what the tooling is built for:
 
 ```bash
-npm run scan -- "D:/SteamLibrary/steamapps/common/Arma 3"
+npm run scan -- "C:/Program Files (x86)/Steam/steamapps/common/Arma 3"
 npm run index
 ```
 

@@ -5,7 +5,7 @@
  * Because the resulting corpus reflects one machine's mod set, it is written
  * to data/classes.json and left untracked by default — see README.
  *
- *   npx tsx scripts/scan-mods.ts "D:/SteamLibrary/steamapps/common/Arma 3"
+ *   npx tsx scripts/scan-mods.ts "C:/Program Files (x86)/Steam/steamapps/common/Arma 3"
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -21,16 +21,22 @@ import {
   type ClassEntry,
 } from "../src/config/classes.js";
 
-const gameDir = process.argv[2] ?? "D:/SteamLibrary/steamapps/common/Arma 3";
+const positional = process.argv.slice(2).filter((a) => !a.startsWith("--"));
+const gameDir = positional[0] ?? process.env.ARMA3_PATH;
+if (!gameDir) {
+  console.error('usage: npm run scan -- "<Arma 3 install path>" [--curated]   (or set ARMA3_PATH)');
+  process.exit(1);
+}
 
 /**
- * `--curated` scans only the widely used mods and writes a gzipped file meant
- * to be committed, so users get a useful classname index without owning every
- * mod. Without it, the scan covers the whole install and stays local.
+ * `--curated` scans only the widely used mods (base game, CBA, CUP, RHS, ACE,
+ * ...) into a smaller gzipped file. Like the full scan it stays local: mod
+ * licences such as RHS's CC BY-NC-ND forbid redistributing derived classname
+ * data, so neither file is ever committed or published (see data/NOTICE.md).
  */
 const curated = process.argv.includes("--curated");
 const outFile = path.resolve(curated ? "data/classes-curated.json.gz" : "data/classes.json");
-const only = process.argv.slice(3).find((a) => !a.startsWith("--"));
+const only = positional[1];
 
 /** Directories that hold addon PBOs: the base game plus every @Mod folder. */
 function addonRoots(root: string): Array<{ mod: string; dir: string }> {
