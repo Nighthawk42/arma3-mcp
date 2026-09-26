@@ -14,6 +14,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { WikiClient, chunk } from "../src/wiki/client.js";
 import { parseRvPage } from "../src/wiki/rv-parser.js";
+import { EVENT_HANDLER_PAGES, parseEventHandlerPage, replacePageEntries } from "../src/wiki/event-handlers.js";
 import type { Corpus, Entry } from "../src/types.js";
 
 const OUT = path.resolve("data/corpus.json");
@@ -41,7 +42,14 @@ console.error(`${changed.length} page(s) edited since the watermark`);
 // Only refetch pages we already track. A brand-new command page is picked up by
 // the next full ingest; recentchanges alone cannot tell us it belongs to a
 // category we care about without an extra request per page.
-const relevant = changed.filter((t) => knownTitles.has(t));
+const handlerPages = new Set(EVENT_HANDLER_PAGES);
+const relevant = changed.filter((t) => knownTitles.has(t) || handlerPages.has(t));
+// A corpus built before event handlers were ingested gets them now: it is one
+// request, not a full re-ingest.
+if (!corpus.entries.some((e) => e.type === "eventhandler")) {
+  for (const t of EVENT_HANDLER_PAGES) if (!relevant.includes(t)) relevant.push(t);
+  console.error("corpus has no event handlers yet; fetching their reference pages");
+}
 console.error(`${relevant.length} of them are pages we track`);
 
 let updated = 0;
@@ -51,6 +59,21 @@ for (const batch of chunk(relevant)) {
   const pages = await client.fetchWikitext(batch);
   for (const page of pages) {
     if (page.missing || !page.wikitext || !page.revision) continue;
+    if (handlerPages.has(page.title)) {
+      const fresh = parseEventHandlerPage({
+        title: page.title,
+        wikitext: page.wikitext,
+        url: client.pageUrl(page.title),
+        revision: page.revision,
+      });
+      const next = replacePageEntries([...byId.values()], page.title, fresh);
+      removed += byId.size + fresh.length - next.length;
+      byId.clear();
+      for (const e of next) byId.set(e.id, e);
+      updated += fresh.length;
+      console.error(`  ${page.title}: ${fresh.length} event handlers`);
+      continue;
+    }
     const result = parseRvPage({
       title: page.title,
       wikitext: page.wikitext,

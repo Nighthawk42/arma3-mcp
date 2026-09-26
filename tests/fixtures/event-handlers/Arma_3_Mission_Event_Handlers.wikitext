@@ -1,0 +1,832 @@
+{{TOC|side}}
+{{GVI|arma3|0.50}} {{Icon|localEffect|32}}
+
+Mission event handlers are specific EHs that are anchored to the running mission and automatically removed when mission is over.
+These events fire only on the machine where they have been added.<br>
+For all other available EHs see the [[Arma_3:_Event_Handlers|Event Handlers main page]].
+
+{{Feature|informative|'''OnUser...''' mission event handlers used in combination with [[getUserInfo]] provide a way to track server users from the very early stage of joining a server to the very last stage of leaving the server. All these event handlers are designed to be used server side and return unique user network id in [[String]] format as the first param. These ids could also be obtained via [[getPlayerID]] and [[allUsers]] script commands. There may be other params specific to each event. See:
+
+* {{Link|#OnUserConnected}}
+* {{Link|#OnUserDisconnected}}
+* {{Link|#OnUserClientStateChanged}}
+* {{Link|#OnUserAdminStateChanged}}
+* {{Link|#OnUserSelectedPlayer}}
+* {{Link|#OnUserKicked}}
+}}
+
+
+== Related Commands ==
+
+* [[addMissionEventHandler]]
+* [[removeMissionEventHandler]]
+* [[removeAllMissionEventHandlers]]
+
+
+== Events ==
+{{ArgTitle|4|ActionTargetChanged|{{GVI|arma3|2.22}}}}
+Executes when action target object changes under cursor. This event handler fires before user actions are processed and added to the player.
+<sqf>
+addMissionEventHandler ["ActionTargetChanged", {
+	params ["_newActionTarget", "_oldActionTarget"];
+}];
+</sqf>
+
+* newActionTarget: [[Object]]
+* oldActionTarget: [[Object]]
+
+{{ArgTitle|4|ArtilleryShellFired|{{GVI|arma3|2.18}}}}
+Global Mission Event Handler. Executes each time a vehicle classified as artillery (has an artillery computer) fires a shell.
+<sqf>
+addMissionEventHandler ["ArtilleryShellFired", {
+	params ["_vehicle", "_weapon", "_ammo", "_gunner", "_instigator", "_artilleryTarget", "_targetPosition", "_shell"];
+}];
+</sqf>
+
+* vehicle: [[Object]] - artillery vehicle firing the shell
+* weapon: [[String]] - weapon name
+* ammo: [[String]] - ammo name
+* gunner: [[Object]] - gunner
+* instigator: [[Object]] - instigator
+* artilleryTarget: [[Object]] - artillery target object
+* targetPosition: [[Position]] - ground position the shell is aimed at
+* shell: [[Object]] - the projectile
+
+
+{{ArgTitle|4|BuildingChanged|{{GVI|arma3|1.68}}}}
+Fired each time a building model changes, for example due to stages of destruction.
+<sqf>
+addMissionEventHandler ["BuildingChanged", {
+	params ["_from", "_to", "_isRuin"];
+}];
+</sqf>
+
+* from: [[Object]] - building it changes from
+* to: [[Object]] - building it changes to
+* isRuin: [[Boolean]] - [[true]] if changes to ruins
+
+
+{{ArgTitle|4|CommandModeChanged|{{GVI|arma3|1.58}}}}
+Executes assigned code when user switches to/from High Command mode ({{Controls|LShift|Space}}). Stackable version of [[onCommandModeChanged]].
+<sqf>
+addMissionEventHandler ["CommandModeChanged", {
+	params ["_isHighCommand", "_isForced"];
+}];
+</sqf>
+
+* isHighCommand: [[Boolean]] - same as {{hl|_isHighCommand}} param
+* isForced: [[Boolean]] - [[true]] if command mode was forced
+
+
+{{ArgTitle|4|ControlsShifted|{{GVI|arma3|1.00}}}}
+Triggers when control of a vehicle is shifted (pilot->co-pilot, co-pilot->pilot), usually when user performs an [[action]] such as [[action/Arma_3_Actions_List#TakeVehicleControl | TakeVehicleControl]], [[action/Arma_3_Actions_List#SuspendVehicleControl | SuspendVehicleControl]], [[action/Arma_3_Actions_List#UnlockVehicleControl | UnlockVehicleControl]], [[action/Arma_3_Actions_List#LockVehicleControl | LockVehicleControl]], or when [[enableCopilot]] command is used. This event handler will always fire on the PC where [[action]] is triggered as well as where the vehicle is [[Multiplayer Scripting#Locality|local]] at the time. When control of the vehicle is shifted, the locality of the vehicle changes to the locality of the new controller. Since Arma 3 v1.96 this EH is extended with additional params.
+<sqf>
+addMissionEventHandler ["ControlsShifted", {
+	params ["_newController", "_oldController", "_vehicle", "_copilotEnabled", "_controlsUnlocked"];
+}];
+</sqf>
+
+* newController: [[Object]] - unit currently controlling the vehicle
+* oldController: [[Object]] - unit previously controlling the vehicle
+* vehicle: [[Object]] - the vehicle for which controls shifted
+* copilotEnabled: [[Boolean]] - [[true]] if copilot is enabled
+* controlsUnlocked: [[Boolean]] - [[true]] if controls are unlocked
+
+{{ArgTitle|4|DisplayOpened|{{GVI|arma3|2.22}}}}
+Executes when any display is opened.
+<sqf>
+addMissionEventHandler ["DisplayOpened", {
+	params ["_display", "_configClass"];
+}];
+</sqf>
+
+* display: [[Display]]
+* configClass: [[Config]]
+
+{{ArgTitle|4|Draw2D|{{GVI|arma3|2.18}}}}
+Runs after all UI has been drawn. Runs the EH code each frame in unscheduled environment. Client side EH only (presence of UI).
+Will stop executing when UI loses focus ({{Controls|Alt|Tab}} for example). Usually used with [[drawIcon]].
+<sqf>
+addMissionEventHandler ["Draw2D", {
+	// no params
+}];
+</sqf>
+
+
+{{ArgTitle|4|Draw3D|{{GVI|arma3|0.50}}}}
+Runs the EH code each frame in unscheduled environment. Client side EH only (presence of UI).
+Will stop executing when UI loses focus ({{Controls|Alt|Tab}} for example). Usually used with [[drawIcon3D]], [[drawLine3D]].
+<sqf>
+addMissionEventHandler ["Draw3D", {
+	// no params
+}];
+</sqf>
+
+{{ArgTitle|4|Drowned|{{GVI|arma3|2.14}}}}
+Runs when a vehicle gets drowned (the vehicle is submerged below 'maxFord' for longer than 'waterResistance'). This will cause engine damage and for some vehicles that will render engine unusable until the vehicle/engine is fully repared. Some vehicles can drown but would still be recoverable as they wouldn't be destroyed. The event handler will also fire when vehicle is removed from water, in which case 'drowned' param will change to [[false]]. To check if the engine was damaged by water use [[waterDamaged]] command.
+<sqf>
+addMissionEventHandler ["Drowned", {
+	params ["_vehicle", "_drowned"];
+}];
+</sqf>
+
+
+{{ArgTitle|4|EachFrame|{{GVI|arma3|1.58}}}}
+Executes assigned code each frame. Stackable version of [[onEachFrame]].
+<sqf>
+addMissionEventHandler ["EachFrame", {
+	// no params
+}];
+</sqf>
+
+
+{{ArgTitle|4|Ended|{{GVI|arma3|0.50}}}}
+Triggered when mission ends, either using trigger of type "End", [[endMission]] command, [[BIS_fnc_endMission]] function or [[Arma 3: Cheats#ENDMISSION|ENDMISSION]] cheat.
+<sqf>
+addMissionEventHandler ["Ended", {
+	params ["_endType"];
+}];
+</sqf>
+
+* endType: [[String]] - mission end type. Used in [[Debriefing]] among other things
+
+
+{{ArgTitle|4|MPEnded|{{GVI|arma3|1.60}}}}
+Triggered when the server switches off from "playing" state (mission ends, server closes, etc.) It's only for MP games, it is called on server and also on clients. It is not called on clients when client disconnects from server (and mission continues). This EH has no arguments passed to the code.
+<sqf>
+addMissionEventHandler ["MPEnded", {
+	// no params
+}];
+</sqf>
+If client code must be executed on disconnect, this code can be used instead:
+<sqf>
+0 spawn
+{
+	waitUntil { !isNull findDisplay 46 };
+	findDisplay 46 displayAddEventHandler ["Unload",
+	{
+		// code here gets executed on the client at end of mission, whether due to player abort, loss of connection, or mission ended by server
+		// might not work on headless clients
+	}];
+};
+</sqf>
+
+
+{{ArgTitle|4|EntityCreated|{{GVI|arma3|2.10}}}}
+Triggered when an entity is created.
+{{Feature|informative|Unlike most event handlers, the argument is entity [[Object]] and not an array containing the entity. However, it is recommended to use [[params]] to make sure the code remains compatible in case the event arguments are expanded in the future.}}
+{{Feature|important|This event is called before variable namespace is copied to '''remote''' respawning entity, keep this in mind so your [[setVariable]]s are not overwritten in the next frame. [[#EntityRespawned|EntityRespawned]] always fires after variable namespace is copied to new entity regardless of locality.}}
+<sqf>
+addMissionEventHandler ["EntityCreated", {
+	params ["_entity"];
+}];
+</sqf>
+
+
+{{ArgTitle|4|EntityDeleted|{{GVI|arma3|2.18}}}}
+Triggered when an entity is deleted. It only triggers for objects that support the "Deleted" event handler, such as vehicles, soldiers, animals, and houses. Simple objects for example are not supported.
+{{Feature|informative|Unlike most event handlers, the argument is entity [[Object]] and not an array containing the entity. However, it is recommended to use [[params]] to make sure the code remains compatible in case the event arguments are expanded in the future.}}
+<sqf>
+addMissionEventHandler ["EntityDeleted", {
+	params ["_entity"];
+}];
+</sqf>
+
+
+{{ArgTitle|4|EntityKilled|{{GVI|arma3|1.56}}}}
+Triggered when an entity is killed.
+<sqf>
+addMissionEventHandler ["EntityKilled", {
+	params ["_unit", "_killer", "_instigator", "_useEffects"];
+}];
+</sqf>
+
+* unit: [[Object]] - entity that was killed
+* killer: [[Object]] - the killer (vehicle or person)
+* {{GVI|arma3|1.66}} instigator: [[Object]] - person who pulled the trigger
+* {{GVI|arma3|1.68}} useEffects: [[Boolean]] - same as ''useEffects'' in [[setDamage]] alt syntax
+----
+
+It's worth noting that ''instigator'' param is [[objNull]] during road kill. To work around this issue try:
+<sqf>
+addMissionEventHandler ["EntityKilled", {
+	params ["_killed", "_killer", "_instigator"];
+	if (isNull _instigator) then { _instigator = UAVControl vehicle _killer select 0 }; // UAV/UGV player operated road kill
+	if (isNull _instigator) then { _instigator = _killer }; // player driven vehicle road kill
+	hint format ["Killed By %1", name _instigator];
+}];
+</sqf>
+
+
+{{ArgTitle|4|EntityRespawned|{{GVI|arma3|1.56}}}}
+Triggered when an entity is respawned.
+<sqf>
+addMissionEventHandler ["EntityRespawned", {
+	params ["_newEntity", "_oldEntity"];
+}];
+</sqf>
+
+* newEntity: [[Object]] - respawned entity
+* oldEntity: [[Object]] - corpse/wreck
+
+
+{{ArgTitle|4|ExtensionCallback|{{GVI|arma3|1.96}}}}
+Triggered when an [[callExtension | extension]] calls provided function pointer with 3 params.
+<sqf>
+addMissionEventHandler ["ExtensionCallback", {
+	params ["_name", "_function", "_data"];
+}];
+</sqf>
+
+* name: [[String]] - user provided param
+* function: [[String]] - user provided param
+* data: [[String]] - user provided param
+
+
+{{ArgTitle|4|GroupCreated|{{GVI|arma3|2.04}}}}
+Triggered when a [[Group]] is created. Note that the group contains '''no''' units at that point!
+<sqf>
+addMissionEventHandler ["GroupCreated", {
+	params ["_group"];
+}];
+</sqf>
+
+* group: [[Group]] - the created group
+
+
+{{ArgTitle|4|GroupDeleted|{{GVI|arma3|2.04}}}}
+Triggered when a [[Group]] is [[deleteGroup|manually]] or [[deleteGroupWhenEmpty|automatically]] deleted.
+<sqf>
+addMissionEventHandler ["GroupDeleted", {
+	params ["_group"];
+}];
+</sqf>
+
+* group: [[Group]] - the deleted group
+
+
+{{ArgTitle|4|GroupIconClick|{{GVI|arma3|1.58}}}}
+Executes assigned code when user clicks on the HC group icon on the map. If [[groupIconSelectable]] is [[true]], LMB clicking (firing) at the HC group icon on the HUD will also trigger the event. To set group icon selectable use [[setGroupIconsSelectable]]. Stackable version of [[onGroupIconClick]].
+<sqf>
+addMissionEventHandler ["GroupIconClick", {
+	params [
+		"_is3D", "_group", "_waypointId",
+		"_mouseButton", "_posX", "_posY",
+		"_shift", "_control", "_alt"
+	];
+}];
+</sqf>
+
+* is3D: [[Boolean]] - [[true]] if HUD icon, [[false]] if main map icon
+* group: [[Group]] - group the icon belonds to
+* waypointId: [[Number]] - waypoint ID
+* mouseButton: [[Number]] - mouse button: 0 - {{Controls|LMB}}, 1 - {{Controls|RMB}} (only applicable to IconClick)
+* posX: [[Number]] - screen X of the mouse
+* posY: [[Number]] - screen Y of the mouse
+* shift: [[Boolean]] - [[true]] if {{Controls|Shift}} key was pressed
+* ctrl: [[Boolean]] - [[true]] if {{Controls|Ctrl}} key was pressed
+* alt: [[Boolean]] - [[true]] if {{Controls|Alt}} key was pressed
+
+
+{{ArgTitle|4|GroupIconOverEnter|{{GVI|arma3|1.58}}}}
+'''Continuously''' executes assigned code when user hovers with pointer over the HC group icon, either on the HUD or the main map. [[groupIconSelectable]] must be set to [[true]] for this EH to work at all. To set group icon selectable use [[setGroupIconsSelectable]]. When EH fires over the HUD icon, X and Y coordinates will change depending on the position of the pointer in relation to the icon area. When over main map, the X and Y do not change and indicate icon center. Stackable version of [[onGroupIconOverEnter]].
+<sqf>
+addMissionEventHandler ["GroupIconOverEnter", {
+	params [
+		"_is3D", "_group", "_waypointId",
+		"_posX", "_posY",
+		"_shift", "_control", "_alt"
+	];
+}];
+</sqf>
+
+* is3D: [[Boolean]] - [[true]] if HUD icon, [[false]] if main map icon
+* group: [[Group]] - group the icon belonds to
+* waypointId: [[Number]] - waypoint ID
+* posX: [[Number]] - screen X of the mouse
+* posY: [[Number]] - screen Y of the mouse
+* shift: [[Boolean]] - [[true]] if {{Controls|Shift}} key was pressed
+* ctrl: [[Boolean]] - [[true]] if {{Controls|Ctrl}} key was pressed
+* alt: [[Boolean]] - [[true]] if {{Controls|Alt}} key was pressed
+
+
+{{ArgTitle|4|GroupIconOverLeave|{{GVI|arma3|1.58}}}}
+Executes assigned code when user moves the pointer away from HC group icon it was over. Fires either for on the HUD icons or the main map HC icons. [[groupIconSelectable]] must be set to [[true]] for this EH to work at all. To set group icon selectable use [[setGroupIconsSelectable]]. Stackable version of [[onGroupIconOverLeave]].
+<sqf>
+addMissionEventHandler ["GroupIconOverLeave", {
+	params [
+		"_is3D", "_group", "_waypointId",
+		"_posX", "_posY",
+		"_shift", "_control", "_alt"
+	];
+}];
+</sqf>
+
+* is3D: [[Boolean]] - [[true]] if HUD icon, [[false]] if main map icon
+* group: [[Group]] - group the icon belonds to
+* waypointId: [[Number]] - waypoint ID
+* posX: [[Number]] - screen X of the mouse
+* posY: [[Number]] - screen Y of the mouse (Y is always 0 when leaving HUD icon for some reason)
+* shift: [[Boolean]] - [[true]] if {{Controls|Shift}} key was pressed
+* ctrl: [[Boolean]] - [[true]] if {{Controls|Ctrl}} key was pressed
+* alt: [[Boolean]] - [[true]] if {{Controls|Alt}} key was pressed
+
+
+{{ArgTitle|4|HandleAccTime|{{GVI|arma3|1.90}}}}
+Fires when user changes time acceleration with +/- keys in SP or [[setAccTime]] command. If the code returns [[true]] the on-screen message confirming the change is not displayed. Doesn't fire if desired value is already set.
+<sqf>
+addMissionEventHandler ["HandleAccTime", {
+	params ["_currentTimeAcc", "_prevTimeAcc", "_messageSuppressed"];
+}];
+</sqf>
+
+* currentTimeAcc: [[Number]] - current value
+* prevTimeAcc: [[Number]] - previous value
+* messageSuppressed: [[Boolean]] - [[true]] if on-screen message was suppressed
+
+
+{{ArgTitle|4|HandleChatMessage|{{GVI|arma3|2.00}}}}
+
+Fires when a message is received, before adding it to the chat feed. Fires clientside.
+
+{{Feature|informative|
+* On a dedicated server and headless client it fires only for global (channel 0) and system messages (channel 16).
+* The HandleChatMessage EH can be used to disable/modify system messages like "Player NAME connecting/is losing connection".
+}}
+
+{{Feature|important|Does not trigger for any of the chat related script command such as [[systemChat]], [[sideChat]], or other {{Link|Category:Command Group: Radio and Chat|chat commands}}.}}
+
+The output message could be overridden:
+* Return [[true]] to block incoming chat message from being added to the chat feed.
+* Return [[String]] to replace the chat message content but not the sender name.
+* Return [[Array]] [from, text] to replace both the chat message content and the the sender's name.
+
+{{Feature|important|Only the last added HandleChatMessage EH with override will be used to override the message.}}
+
+{{Feature|warning|Do not put any of the chat related script command such as [[systemChat]], [[sideChat]], etc in this EH code as it would naturally cause recursion and the game will freeze.}}
+
+<sqf>
+addMissionEventHandler ["HandleChatMessage", {
+	params ["_channel", "_owner", "_from", "_text", "_person", "_name", "_strID", "_forcedDisplay", "_isPlayerMessage", "_sentenceType", "_chatMessageType", "_params"];
+}];
+</sqf>
+
+* channel: [[Number]] - see [[Description.ext#disableChannels|radio channel indices]] (16 for system chat message for example)
+* owner: [[Number]] - [[owner]] id of the sender:
+** in SP: 0
+** in MP with no sender: [[clientOwner]]
+** in MP with sender: sender's [[clientOwner]], or if AI - creator id part of [[netId]] of the AI
+* from: [[String]] - sender's formatted name as appeared on the chat
+* text: [[String]] - the chat message
+* person: [[Object]] - sender's object
+* name: [[String]] - sender's [[name]], could be different from {{hl|from}}
+* strID: [[String]] - sender's network player ID (marker id):
+** "-1": means not available
+** "0": means [[player | isPlayer]] in SP
+** "1": means AI in SP or MP
+** >1: [[getPlayerID]] in MP
+* forcedDisplay: [[Boolean]] - if the message should be displayed when the chat list is disabled (when [[enableRadio]] is set to [[false]] radio protocol messages won't display)
+* isPlayerMessage: [[Boolean]] - if the message is addressed to [[player]]
+* sentenceType: [[Number]] - 0: Normal type, 1: Protocol type
+* chatMessageType: [[Number]] - 0: Generic type, 1: SimpleMove type, 2: KillConfirmation type
+* params: [[Array]] of [[String]]s - sentence parameters, if any
+
+
+{{ArgTitle|4|HandleDisconnect|{{GVI|arma3|1.32}}&nbsp;{{Icon|serverExec|32}}}}
+Triggered right after a player disconnects from the game, more accurately when a player-controlled unit changes ownership due to the owning player being disconnected (disconnected player information is no available through e.g [[getUserInfo]] anymore).
+Similar to the {{Link|#PlayerDisconnected}} event but contains the unit occupied by the player before their disconnection.
+Must be added on the server and triggers only on the server.
+{{Feature|important|A player disconnecting while not controlling a unit (not spawned, deleted unit, etc) does '''not''' trigger this event.}}
+<sqf>
+addMissionEventHandler ["HandleDisconnect", {
+	params ["_unit", "_id", "_uid", "_name"];
+	true;
+}];
+</sqf>
+
+* unit: [[Object]] - unit formerly occupied by player
+* id: [[Number]] - same as _id in [[onPlayerDisconnected]]
+* uid: [[String]] - same as _uid in [[onPlayerDisconnected]]
+* name: [[String]] - same as _name in [[onPlayerDisconnected]]
+'''Override''': if this EH code returns [[true]], the unit, previously occupied by player, gets transferred to the server, becomes AI and continues to live, even with [[Description.ext|description.ext]] param {{hl|disabledAI {{=}} 1;}}.
+
+
+{{ArgTitle|4|HCGroupSelectionChanged|{{GVI|arma3|1.58}}}}
+Executes assigned code when user selects available HC group ({{hl|F1, F2…}}). Stackable version of [[onHCGroupSelectionChanged]].
+<sqf>
+addMissionEventHandler ["HCGroupSelectionChanged", {
+	params ["_group", "_isSelected"];
+}];
+</sqf>
+
+* group: [[Group]] - group selected (same as {{hl|_group}} param)
+* isSelected: [[Boolean]] - [[true]] if selected (same as {{hl|_isSelected}} param)
+
+
+{{ArgTitle|4|Loaded|{{GVI|arma3|0.50}}}}
+Triggered when mission is loaded from save. <br>
+{{Feature|warning|"Loaded" event handler should be added <u>BEFORE</u> the mission is loaded from save. Placing it in a [[Arma 3: Functions Library|function]] with preInit {{=}} 1; usually does the trick.}}
+<sqf>
+addMissionEventHandler ["Loaded", {
+	params ["_saveType"];
+}];
+</sqf>
+
+* savingType: [[String]] - one of "autosaveold", "autosave", "save", "save2", "save3", "save4", "save5", "save6", "continue" or "".
+** "save" - custom save, achieved by pressing SAVE button in the pause menu
+** "autosave" - automatic checkpoint, saved using [[saveGame]] command
+** "continue" - saved when leaving a mission to the main menu
+
+
+{{ArgTitle|4|Map|{{GVI|arma3|1.62}}}}
+Triggered when map is opened or closed either by user action or script command [[openMap]].
+<sqf>
+addMissionEventHandler ["Map", {
+	params ["_mapIsOpened", "_mapIsForced"];
+}];
+</sqf>
+
+* mapIsOpened: [[Boolean]] - [[true]] if map is opened
+* mapIsForced: [[Boolean]] - [[true]] if map is forced
+
+
+{{ArgTitle|4|MapSingleClick|{{GVI|arma3|1.58}}}}
+Executes when the player clicks anywhere on the main map. Stackable version of [[onMapSingleClick]] with the limitation that it does not have the ability to override the click (e.g. to prevent the player from placing the [[customWaypointPosition|custom waypoint]] with {{Controls|LShift|LMB}}). Since the introduction of <sqf inline>_thisArgs</sqf> for [[addMissionEventHandler]] in {{GVI|arma3|2.04}}, this EH also supports custom arguments (just like [[onMapSingleClick]]).
+<sqf>
+addMissionEventHandler ["MapSingleClick", {
+	params ["_units", "_pos", "_alt", "_shift"];
+}];
+</sqf>
+* units: [[Array]] - leader selected units, same as [[groupSelectedUnits]] (same as [[onMapSingleClick]]'s {{hl|_units}} variable)
+* pos: [[Array]] - world [[Position#Introduction|Position3D]] of the click in format {{hl|[x, y, 0]}} (same as [[onMapSingleClick]]'s {{hl|_pos}} variable)
+* alt: [[Boolean]] - [[true]] if {{Controls|Alt}} key was pressed (same as [[onMapSingleClick]]'s {{hl|_alt}} variable)
+* shift: [[Boolean]] - [[true]] if {{Controls|Shift}} key was pressed (same as [[onMapSingleClick]]'s {{hl|_shift}} variable)
+
+
+{{ArgTitle|4|MarkerCreated|{{GVI|arma3|2.02}}}}
+Executes when a marker is created either by a user or via script command.
+<sqf>
+addMissionEventHandler ["MarkerCreated", {
+	params ["_marker", "_channelNumber", "_owner", "_local"];
+}];
+</sqf>
+* marker: [[String]] - the name of the created marker, can be used with the [[:Category:Command_Group:_Markers|marker commands]]
+* channelNumber: [[Number]] - [[Channel IDs|channel]] in which the marker was created
+* owner: [[Object]] - player that created the marker or [[objNull]]
+* {{GVI|arma3|2.04}} local: [[Boolean]] - [[true]] if the event originated locally, [[false]] if it came over the network
+
+
+{{ArgTitle|4|MarkerDeleted|{{GVI|arma3|2.02}}}}
+Executes immediately before a marker is deleted either by a user or via script command.
+<sqf>
+addMissionEventHandler ["MarkerDeleted", {
+	params ["_marker", "_local", "_deleter"];
+}];
+</sqf>
+* marker: [[String]] - the name of the deleted marker
+* {{GVI|arma3|2.04}} local: [[Boolean]] - [[true]] if the event originated locally, [[false]] if it came over the network
+* {{GVI|arma3|2.20}} deleter: [[Object]] - the player/curator unit that deleted the marker
+
+
+{{ArgTitle|4|MarkerUpdated|{{GVI|arma3|2.02}}}}
+Executes when a marker is changed.
+{{Feature|warning|Changing the marker in the EH code will lead to an infinite loop and the game will crash!}}
+<sqf>
+addMissionEventHandler ["MarkerUpdated", {
+	params ["_marker", "_local"];
+}];
+</sqf>
+* marker: [[String]] - the name of the marker
+* {{GVI|arma3|2.04}} local: [[Boolean]] - [[true]] if the event originated locally, [[false]] if it came over the network
+
+
+{{ArgTitle|4|OnUserConnected|{{GVI|arma3|2.06}}&nbsp;{{Icon|serverExec|32}}}}
+Executes assigned code on user joining server.
+<sqf>
+addMissionEventHandler ["OnUserConnected", {
+	params ["_networkId", "_clientStateNumber", "_clientState"];
+}];
+</sqf>
+* networkId: [[String]] - user network id (see [[getPlayerID]], [[allUsers]])
+* clientStateNumber: [[Number]] - client state number (see [[getClientStateNumber]]) - always 1
+* clientState: [[String]] - client state (see [[getClientState]]) - always "CREATED"
+
+
+{{ArgTitle|4|OnUserDisconnected|{{GVI|arma3|2.06}}&nbsp;{{Icon|serverExec|32}}}}
+Executes assigned code on user leaving server.
+<sqf>
+addMissionEventHandler ["OnUserDisconnected", {
+		params ["_networkId", "_clientStateNumber", "_clientState"];
+}];
+</sqf>
+* networkId: [[String]] - user network id (see [[getPlayerID]], [[allUsers]])
+* clientStateNumber: [[Number]] - client state number (see [[getClientStateNumber]]) - always 0
+* clientState: [[String]] - client state (see [[getClientState]]) - always "NONE"
+
+
+{{ArgTitle|4|OnUserClientStateChanged|{{GVI|arma3|2.06}}&nbsp;{{Icon|serverExec|32}}}}
+Executes assigned code for every stage of user client state change.
+<sqf>
+addMissionEventHandler ["OnUserClientStateChanged", {
+	params ["_networkId", "_clientStateNumber", "_clientState"];
+}];
+</sqf>
+* networkId: [[String]] - user network id (see [[getPlayerID]], [[allUsers]])
+* clientStateNumber: [[Number]] - client state number (see [[getClientStateNumber]])
+* clientState: [[String]] - client state (see [[getClientState]])
+
+
+{{ArgTitle|4|OnUserAdminStateChanged|{{GVI|arma3|2.06}}&nbsp;{{Icon|serverExec|32}}}}
+Executes assigned code after user logs in, gets voted in or logs out as admin.
+<sqf>
+addMissionEventHandler ["OnUserAdminStateChanged", {
+	params ["_networkId", "_loggedIn", "_votedIn"];
+}];
+</sqf>
+* networkId: [[String]] - user network id (see [[getPlayerID]], [[allUsers]])
+* loggedIn: [[Boolean]] - [[true]] if user logged in or got voted in as admin, [[false]] if logged out (see [[admin]])
+* votedIn: [[Boolean]] - [[true]] if user got voted in as admin, [[false]] otherwise (see [[admin]])
+
+
+{{ArgTitle|4|OnUserSelectedPlayer|{{GVI|arma3|2.06}}&nbsp;{{Icon|serverExec|32}}}}
+Executes assigned code after player object is selected for user to take over control, the ownership information is broadcast and request to sync is made but the object is still owned by previous owner for a short time.
+<sqf>
+addMissionEventHandler ["OnUserSelectedPlayer", {
+		params ["_networkId", "_playerObject", "_attempts"];
+}];
+</sqf>
+* networkId: [[String]] - user network id (see [[getPlayerID]], [[allUsers]])
+* playerObject: [[Object]] - player object to be controlled by the user (see [[player]], [[selectPlayer]])
+* {{GVI|arma3|2.18}} attempts: [[Number]] - how many times server was trying to obtain non-null playerObject. Current threshold after which the event will fire anyway is 50.
+{{Feature|important|This is the earliest the player object is known when player joins the server, but it is not local to the user yet, so there is a wait time depending on network connection. When player respawns, the unit created on the client and so it might take a while before server has valid player object. From Arma 3 v2.18 the server will pospone this event until the object is not null, or until it tried 50 times, whichever is earlier. The best approach to handle this matter and get notified about completion of the transfer of the ownership is to use [[Arma_3:_Event_Handlers#Local|"Local"]] entity event handler, like so:
+<sqf>
+addMissionEventHandler ["OnUserSelectedPlayer", {
+	params ["_networkId", "_playerObject", "_attempts"];
+	_playerObject addEventHandler ["Local",
+	{
+		params ["_player"];
+		_player removeEventHandler ["Local", _thisEventHandler];
+		// code to handle _player
+	}];
+}];
+</sqf>
+Note that the player object would change locality again if the user goes to lobby.}}
+
+
+{{ArgTitle|4|OnUserKicked|{{GVI|arma3|2.06}}&nbsp;{{Icon|serverExec|32}}}}
+Executes assigned code after after a user has been kicked from the server providing kick reason. The possible values for 'kickTypeNumber' and 'kickType' are:<br>0 : {{hl|"TIMEOUT"}}, 1 : {{hl|"DISCONNECTED"}}, 2 : {{hl|"KICKED"}}, 3 : {{hl|"BANNED"}}, 4 : {{hl|"MISSING ADDON"}}, 5 : {{hl|"BAD CD KEY"}}, 6 : {{hl|"CD KEY IN USE"}}, 7 : {{hl|"SESSION LOCKED"}}, 8 : {{hl|"BATTLEYE"}}, 9 : {{hl|"STEAM CHECK"}}, 10 : {{hl|"DLC CONTENT"}}, 11 : {{hl|"GS TIMEOUT"}}, 12 : {{hl|"SCRIPT"}}, 13 : {{hl|"OTHER"}}
+<sqf>
+addMissionEventHandler ["OnUserKicked", {
+	params ["_networkId", "_kickTypeNumber", "_kickType", "_kickReason", "_kickMessageIncReason"];
+}];
+</sqf>
+* networkId: [[String]] - user network id (see [[getPlayerID]], [[allUsers]])
+* kickTypeNumber: [[Number]] - kick type number (see above)
+* kickType: [[String]] - kick type (see above)
+* kickReason: [[String]] - reason given for the kick by the admin or by other means
+* kickMessageIncReason: [[String]] - formatted engine message including the given reason
+
+
+{{ArgTitle|4|PlayerConnected|{{GVI|arma3|1.58}}&nbsp;{{Icon|serverExec|32}}}}
+Executes assigned code when client joins the mission in MP. Stackable version of [[onPlayerConnected]].
+<sqf>
+addMissionEventHandler ["PlayerConnected", {
+	params ["_id", "_uid", "_name", "_jip", "_owner", "_idStr"];
+}];
+</sqf>
+
+* id: [[Number]] - unique DirectPlay ID (very large number). It is also the same id used for user placed markers
+* uid: [[String]] - [[getPlayerUID]] of the joining client. The same as Steam ID
+* name: [[String]] - [[profileName]] of the joining client
+* jip: [[Boolean]] - [[didJIP]] of the joining client
+* owner: [[Number]] - [[owner]] id of the joining client
+* idStr: [[String]] - same as {{hl|_id}} but in string format, so it can be exactly compared to [[allMapMarkers|user marker]] ids
+
+{{Feature|informative|'''0''' and '''1''' are special values:
+* '''0''' means '''everyone''' (including the server)
+* '''1''' means '''current machine''' but '''{{Color|darkred|is not implemented}}''' and should '''not''' be used.}}
+
+If a dedicated server was started without '-autoInit' option and this EH was created on server, on first GUI client this EH also fires against server, but after first client.
+In mission's {{hl|initServer.sqf}}:
+<sqf>
+addMissionEventHandler ["PlayerConnected", {
+	diag_log "Client connected";
+	diag_log _this;
+}];
+</sqf>
+
+In RPT:
+ 2016/12/16, 15:39:09 "Client connected"
+ 2016/12/16, 15:39:09 [1.51343e+009,"7xxxxxxxxxxxxxxx1","longbow",false,3,"1513430065"]
+ 2016/12/16, 15:39:34  Mission id: 5071d20b183e9580d0ee4f95f413ca18681d6165
+ 2016/12/16, 15:39:34 "Client connected"
+ 2016/12/16, 15:39:34 [2,"","__SERVER__",false,2,"2"]
+
+That happens only for GUI clients, if HC client connects first, EH does not fire for server.<br>
+If dedicated server was started with -autoInit option, this EH does not fire against server, only for future clients, and all further clients appear to be JIP'ed.<br>
+Interesting moment for headless clients, for headless clients instead of [[getPlayerUID]], handler gets string like "HC12160", where '12160' is headless client process ID (matches HC's PID observed in windows task manager)
+
+
+{{ArgTitle|4|PlayerDisconnected|{{GVI|arma3|1.58}}&nbsp;{{Icon|serverExec|32}}}}
+Executes assigned code when client leaves the mission in MP. Stackable version of [[onPlayerDisconnected]].
+<sqf>
+addMissionEventHandler ["PlayerDisconnected", {
+	params ["_id", "_uid", "_name", "_jip", "_owner", "_idstr"];
+}];
+</sqf>
+
+* id: [[Number]] - unique DirectPlay ID (very large number). It is also the same id used for user placed markers (same as {{hl|_id}} param)
+* uid: [[String]] - [[getPlayerUID]] of the leaving client. The same as Steam ID (same as {{hl|_uid}} param)
+* name: [[String]] - [[profileName]] of the leaving client (same as {{hl|_name}} param)
+* jip: [[Boolean]] - [[didJIP]] of the leaving client (same as {{hl|_jip}} param)
+* owner: [[Number]] - [[owner]] id of the leaving client (same as {{hl|_owner}} param)
+* idstr: [[String]] - same as id but in string format, so could be exactly compared to [[allMapMarkers | user marker]] ids
+
+
+{{ArgTitle|4|PlayerViewChanged|{{GVI|arma3|1.66}}}}
+Fired on player view change. Player view changes when player is changing body due to [[teamSwitch]], gets in out of a vehicle or operates UAV for example.
+<sqf>
+addMissionEventHandler ["PlayerViewChanged", {
+	params [
+		"_oldUnit", "_newUnit", "_vehicleIn",
+		"_oldCameraOn", "_newCameraOn", "_uav"
+	];
+}];
+</sqf>
+
+* oldUnit: [[Object]] - player body before EH fired
+* newUnit: [[Object]] - player body after EH fired
+* vehicleIn: [[Object]] - vehicle player is in ([[objNull]] if not in vehicle)
+* oldCameraOn: [[Object]] - [[cameraOn]] before EH fired
+* newCameraOn: [[Object]] - [[cameraOn]] after EH fired
+* uav: [[Object]] - UAV reference if player is operating one ([[objNull]] if not operating UAV)
+
+
+{{ArgTitle|4|PreloadStarted|{{GVI|arma3|1.58}}}}
+Executes assigned code before the mission preload screen. Stackable version of [[onPreloadStarted]].<br>
+{{Feature | important | This event handler also fires on client after user closes the main map. }}
+<sqf>
+addMissionEventHandler ["PreloadStarted", {
+	// no params
+}];
+</sqf>
+
+
+{{ArgTitle|4|PreloadFinished|{{GVI|arma3|1.58}}}}
+Executes assigned code after the mission preload screen. Stackable version of [[onPreloadFinished]].<br>
+{{Feature | important | This event handler also fires on client after user closes the main map. }}
+<sqf>
+addMissionEventHandler ["PreloadFinished", {
+	// no params
+}];
+</sqf>
+
+{{ArgTitle|4|ProjectileCreated|{{GVI|arma3|2.10}}}}
+Triggered when a projectile is created.
+<sqf>
+addMissionEventHandler ["ProjectileCreated", {
+	params ["_projectile"];
+}];
+</sqf>
+
+{{ArgTitle|4|SaveGame|{{GVI|arma3|2.18}}}}
+Triggered just BEFORE the game saving process started but [[isSaving]] is already set to [[true]]. To know when the saving is finished check when [[isSaving]] returns [[false]]. 
+
+<sqf>
+addMissionEventHandler ["SaveGame", {
+	params ["_saveType"];
+}];
+</sqf>
+
+* saveType: [[String]] - one of "autosaveold", "autosave", "save", "save2", "save3", "save4", "save5", "save6", "continue" or "".
+
+
+{{ArgTitle|4|ScriptError|{{GVI|arma3|2.14}}}}
+Triggered when a script error occurs. See also the {{hl|{{Link|Arma 3: Startup Parameters#Developer Options|-showScriptErrors}}}} {{Link|Arma 3: Startup Parameters|startup parameter}}.
+
+{{Feature|informative|
+Event Handlers have a recursion check. Most of them have a level limit set to '''1''';
+'''ScriptError''' has it set to '''2''' - meaning that an error occuring inside the Event Handler will trigger once more the EH, but no more than two times total.
+}}
+
+<sqf>
+addMissionEventHandler ["ScriptError", {
+	params ["_errorText", "_sourceFile", "_lineNumber", "_errorPos", "_content", "_stackTraceOutput"];
+}];
+</sqf>
+
+* errorText: [[String]] - e.g. "Zero Divisor"
+* sourceFile: [[String]] - empty string if spawned [[Code]]
+* lineNumber: [[Number]] - script's line number
+* errorPos: [[Number]] - script's error byte position in the script ''content''
+* content: [[String]] - the whole script's [[Code]] as [[String]]
+* stackTraceOutput: [[Array]] - see [[diag_stacktrace]] output
+
+{{ArgTitle|4|ScriptSpawned|{{GVI|arma3|2.22}}}}
+Executes when any script is spawned.
+<sqf>
+addMissionEventHandler ["ScriptSpawned", {
+	params ["_data"];
+}];
+</sqf>
+
+* _data: [[Array]] with [fileName, content, hash, parentFileName, parentLine, parentScript]
+** fileName: [[String]] - file name of the spawned script, empty when not available
+** content: [[String]] - content of the spawned script
+** hash: [[String]] - hash value of the [[Script Handle]]
+** parentFileName [[String]] - file name of the parent script, empty when not available
+** parentLine: [[Number]] - line number of the parent script
+** parentScript: [[String]] - content of the parent script
+
+==== SelectedActionPerformed ====
+RTM helicopter user action event
+<sqf>
+addMissionEventHandler ["SelectedActionPerformed", {
+	params ["_caller", "_target", "_enumNumber", "_actionId"];
+}];
+</sqf>
+
+{{Feature|important|Limited or non-existent functionality}}
+
+
+==== SelectedActionChanged ====
+RTM helicopter user action event
+<sqf>
+addMissionEventHandler ["SelectedActionChanged", {
+	params ["_caller", "_target", "_enumNumber", "_actionId"];
+}];
+</sqf>
+
+{{Feature|important|Limited or non-existent functionality}}
+
+
+==== SelectedRotorLibActionPerformed ====
+RTM helicopter user action event
+<sqf>
+addMissionEventHandler ["SelectedRotorLibActionPerformed", {
+	params ["_caller", "_target", "_enumNumber", "_actionId"];
+}];
+</sqf>
+
+{{Feature|important|Works only for key press combination {{hl|RightCtrl}} + {{hl|W}}, which is the binding for helicopter wheels brakes. It fires with or without Advanced Flight Model enabled. The enum number returned is 4 and 5, probably because the enum is structured like this:<br>
+0: HelicopterAutoTrimOn<br>
+1: HelicopterAutoTrimOff<br>
+2: HelicopterTrimOn<br>
+3: HelicopterTrimOff<br>
+4: WheelsBrakeOn<br>
+5: WheelsBrakeOff
+}}
+
+
+==== SelectedRotorLibActionChanged ====
+RTM helicopter user action event
+<sqf>
+addMissionEventHandler ["SelectedRotorLibActionChanged", {
+	params ["_caller", "_target", "_enumNumber", "_actionId"];
+}];
+</sqf>
+
+{{Feature|important|Limited or non-existent functionality}}
+
+{{ArgTitle|4|Service|{{GVI|arma3|2.12}}}}
+Executes assigned code when a serviced vehicle gets rearmed, repaired or refueled. The code executes with interval while the serviced vehicle receives service. If the code returns [[true]] the default on-screen service message is not shown.
+<sqf>
+addMissionEventHandler ["Service", {
+	params ["_serviceVehicle", "_servicedVehicle", "_serviceType", "_needsService", "_autoSupply"];
+}];
+</sqf>
+
+* serviceVehicle: [[Object]] - service vehicle
+* servicedVehicle: [[Object]] - vehicle receiving service
+* serviceType: [[Number]] - 0 - MINOR REPAIR, 1 - REPAIR, 2 - REFUEL, 3 - REARM
+* needsService: [[Number]] - how much serviced vehicle [[needService | needsSevice]], 0..1 where 0 - no need, 1 - need a lot
+* autoSupply: [[Boolean]] - [[true]] if supply started by proximity, [[false]] if supply started due to user action
+
+{{ArgTitle|4|TeamSwitch|{{GVI|arma3|1.58}}}}
+Executes assigned code when player teamswitches. Stackable version of [[onTeamSwitch]].
+<sqf>
+addMissionEventHandler ["TeamSwitch", {
+	params ["_previousUnit", "_newUnit"];
+}];
+</sqf>
+
+* previousUnit: [[Object]] - switching from unit (same as {{hl|_from}} param)
+* newUnit: [[Object]] - switching to unit (same as {{hl|_to}} param)
+
+{{ArgTitle|4|UAVCrewCreated|{{GVI|arma3|2.14}}}}
+Fires when UAV or UGV is assembled from Backpack after the AI crew is created
+<sqf>
+addMissionEventHandler ["UAVCrewCreated", {
+	params ["_uav", "_driver", "_gunner"];
+}];
+</sqf>
+
+* uav: [[Object]] - the assembled weapon
+* driver: [[Object]] - AI driver
+* gunner: [[Object]] - AI gunner
+
+
+
+
+[[Category: Event Handlers]]
+[[Category: Introduced with Arma 3 version 0.50]]

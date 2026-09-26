@@ -1,0 +1,557 @@
+{{TOC|side}}
+Scripted Event Handlers are triggered by some of BI's modules and functions. When triggered any code registered for one of these events via [[BIS_fnc_addScriptedEventHandler]] will be executed.
+All the events exists as variables within a namespace, whether this is one of the main [[Namespace]]s like [[missionNamespace]] or [[uiNamespace]] or it could be a specific namespace like a [[Group]] or [[Object]] etc.
+The event also has a set of parameters passed to the executed code.
+You can even implement your own scripted eventHandlers by using [[BIS_fnc_callScriptedEventHandler]].
+For all other available Event Handlers, see [[Arma 3: Event Handlers]].
+
+{{TOC|subtoc|content=
+* 1. {{Link|#Functions}}
+* 2. {{Link|#Examples}}
+* 3. {{Link|#Events}}
+* 4. {{Link|#{{Name|arma3contact}} Events}}
+}}
+
+
+== Functions ==
+
+* [[BIS_fnc_addScriptedEventHandler]]
+* [[BIS_fnc_removeScriptedEventHandler]]
+* [[BIS_fnc_removeAllScriptedEventHandlers]]
+* [[BIS_fnc_callScriptedEventHandler]]
+
+
+== Examples ==
+
+=== Subscribe ===
+
+<sqf>
+[missionNamespace, "localPlayerNearFourArmedRobot", {
+	hint "Hello there";
+}] call BIS_fnc_addScriptedEventHandler;
+</sqf>
+
+<sqf>
+[missionNamespace, "arsenalOpened", {
+	hint "Player opened the Arsenal"; // hint message to the player when he opens the Arsenal
+}] call BIS_fnc_addScriptedEventHandler;
+</sqf>
+
+=== Trigger ===
+
+<sqf>
+waitUntil { sleep 1; player distance _GG < 10 };
+[missionNamespace, "localPlayerNearFourArmedRobot", [player, _GG]] call BIS_fnc_callScriptedEventHandler;
+</sqf>
+
+
+== Events ==
+
+This is a list of all available scripted events that exist through BI's functions and modules.
+Each event is listed under the system that calls them whether this be a specific function or a module. List last updated for {{GVI|arma3|2.10}}
+
+{| class="wikitable align-left"
+|- class="align-center"
+! Event namespace
+! Event name
+! Event passed parameters
+
+|-
+! colspan="3" |
+=== EG Spectator Display ===
+|-
+| <sqf>missionNamespace</sqf>
+| "RscDisplayEGSpectator_OnCursorObjectFocused"
+| <sqf>params ["_object"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "RscDisplayEGSpectator_OnCursorObjectUnfocused"
+| <sqf>params ["_object"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "RscDisplayEGSpectator_OnFocusChanged"
+| <sqf>params ["_newFocus"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "RscDisplayEGSpectator_OnUiVisibilityChanged"
+| <sqf>params ["_isVisible"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "RscDisplayEGSpectator_MapStateChanged"
+| <sqf>params ["_isMapVisible"];</sqf>
+
+|-
+! colspan="3" |
+=== Player opens pause menu ===
+|-
+| <sqf>missionNamespace</sqf>
+| "OnGameInterrupt"
+| <sqf>params ["_display"];</sqf>
+
+|-
+! colspan="3" |
+=== Player exits Game Options menu ===
+|-
+| <sqf>missionNamespace</sqf>
+| "OnGameOptionsExited" {{GVI|arma3|2.02}}
+| <sqf>params ["_okButtonPressed"];</sqf>
+
+|-
+! colspan="3" |
+=== Probing Beam (enoch) ===
+|-
+| <sqf>missionNamespace</sqf>
+| "probingStarted"
+| <sqf>params ["_cursorTarget", "_data"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "probingEnded"
+| <sqf>params ["_data", "_isEnded"];</sqf>
+
+|-
+! colspan="3" |
+=== Respawn Display ===
+|-
+| <sqf>missionNamespace</sqf>
+| "RscDisplayRespawnKeyDown"
+| <sqf>params ["_display", "_keyCode", "_shift", "_ctrl", "_alt"];</sqf>
+
+|-
+! colspan="3" |
+=== Saving of the game, scripted or manual ===
+|-
+| <sqf>missionNamespace</sqf>
+| "OnSaveGame"
+| {{n/a}}
+
+|-
+! colspan="3" |
+=== [[Event Scripts#teamSwitchedScript.sqs|teamSwitchedScript.sqs]] ===
+|-
+| <sqf>missionNamespace</sqf>
+| "teamSwitched"
+| <sqf>params ["_originalUnit", "_switchToUnit"];</sqf>
+
+|-
+! colspan="3" |
+=== [[BIS_fnc_addScriptedEventHandler]] ===
+|-
+| <sqf>missionNamespace</sqf>
+| "ScriptedEventHandlerAdded"
+| <sqf>params ["_namespace", "_name", "_handlerID"];</sqf>
+
+|-
+! colspan="3" |
+=== [[BIS_fnc_animateFlag]] ===
+|-
+| <sqf>_flag</sqf>
+| "FlagAnimationDone"
+| <sqf>params ["_flag", "_phaseEnd"];</sqf>
+
+|-
+! colspan="3" |
+=== [[BIS_fnc_arsenal]] ===
+|-
+| <sqf>missionNamespace</sqf>
+| "arsenalPreOpen" {{GVI|arma3|2.08}} Fires just before Arsenal display is created
+| <sqf>params ["_missionDisplay", "_center"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "arsenalOpened"
+| <sqf>params ["_display", "_toggleSpace"];</sqf>
+* _toggleSpace: [[Boolean]] - <sqf inline>uiNamespace getVariable ["bis_fnc_arsenal_toggleSpace", false]];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "arsenalClosed"
+| <sqf>params ["_displayNull", "_toggleSpace"];</sqf>
+* _toggleSpace: [[Boolean]] - <sqf inline>uiNamespace getVariable ["bis_fnc_arsenal_toggleSpace", false]];</sqf>
+
+|-
+! colspan="3" |
+=== [[BIS_fnc_bleedTickets]] ===
+|-
+| <sqf>missionNamespace</sqf>
+| "dominantSideChanged"
+| <sqf>params ["_dominantSide", "_dominantSideOld", "_sides"];</sqf>
+
+|-
+! colspan="3" |
+=== [[BIS_fnc_EGSpectatorCamera]] ===
+|-
+| <sqf>missionNamespace</sqf>
+| "EGSpectator_OnCameraModeChanged"
+| <sqf>params ["_newMode"];</sqf>
+
+|-
+! colspan="3" |
+=== [[BIS_fnc_garage]] ===
+|-
+| <sqf>missionNamespace</sqf>
+| "garageOpened"
+| <sqf>params ["_display", "_toggleSpace"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "garageClosed"
+| <sqf>params ["_displayNull", "_toggleSpace"];</sqf>
+* _toggleSpace: [[Boolean]] - <sqf inline>uiNamespace getVariable ["bis_fnc_arsenal_toggleSpace", false]];</sqf>
+
+|-
+! colspan="3" |
+{{ArgTitle|3|[[BIS_fnc_initDisplay]]|{{GVI|arma3|2.04}}}}
+|-
+| <sqf>missionNamespace</sqf>
+| "OnDisplayRegistered"
+| <sqf>params ["_display", "_class"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "OnDisplayUnregistered"
+| <sqf>params ["_display", "_class"];</sqf>
+
+|-
+! colspan="3" |
+=== [[BIS_fnc_initInspectable]] ===
+|-
+| <sqf>missionNamespace</sqf>
+| "objectInspected"
+| <sqf>params ["_object", "_texture", "_text", "_sound", "_textureRatio"];</sqf>
+any data, shown as used by the [[Arma 3: Leaflets|Leaflets]] system
+
+|-
+! colspan="3" |
+=== [[BIS_fnc_initIntelObject]] ===
+|-
+| _object
+| "intelObjectFound"
+| <sqf>params ["_object", "_foundBy"];</sqf>
+|-
+| <sqf>_curator</sqf>
+| "intelObjectFound"
+| <sqf>params ["_curator", "_foundBy", "_object"];</sqf>
+
+|-
+! colspan="3" |
+=== [[BIS_fnc_kbTellLocal]] ===
+|-
+| <sqf>missionNamespace</sqf>
+| "BIS_fnc_kbTellLocal_played"
+| <sqf>params ["_from", "_to", "_sentence", "_channel"];</sqf>
+
+|-
+! colspan="3" |
+=== [[BIS_fnc_packStaticWeapon]] ===
+|-
+| <sqf>_group</sqf>
+| "StaticWeaponPacked"
+| <sqf>params ["_group", "_leader", "_gunner", "_assistant", "_weaponBag", "_baseBag"];</sqf>
+
+|-
+! colspan="3" |
+=== [[BIS_fnc_playVideo]] ===
+|-
+| <sqf>missionNamespace</sqf>
+| "BIS_fnc_playVideo_started"
+| <sqf>params ["_video"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "BIS_fnc_playVideo_stopped"
+| <sqf>params ["_video"];</sqf>
+
+|-
+! colspan="3" |
+=== BIS_fnc_priorityQueue* system ===
+|-
+| <sqf>missionNamespace</sqf>
+| "BIS_onQueue%1Pop" where %1 is ID returned from [[BIS_fnc_priorityQueue_Init]]
+| <sqf>params ["_handle"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "BIS_onQueue%1Push" where %1 is ID returned from [[BIS_fnc_priorityQueue_Init]]
+| <sqf>params ["_handle"];</sqf>
+
+|-
+! colspan="3" |
+=== [[BIS_fnc_removeAllScriptedEventHandlers]] ===
+|-
+| <sqf>missionNamespace</sqf>
+| "ScriptedEventHandlerRemoved"
+| <sqf>params ["_namespace", "_name", "_handlerID"];</sqf>
+
+|-
+! colspan="3" |
+=== [[BIS_fnc_removeScriptedEventHandler]] ===
+|-
+| <sqf>missionNamespace</sqf>
+| "ScriptedEventHandlerRemoved"
+| <sqf>params ["_namespace", "_name", "_handlerID"];</sqf>
+
+|-
+! colspan="3" |
+=== [[BIS_fnc_respawnTickets]] ===
+|-
+| <sqf>missionNamespace</sqf>
+| "respawnTicketsExhausted"
+| <sqf>params ["_target"];</sqf>
+
+|-
+! colspan="3" |
+=== [[BIS_fnc_unpackStaticWeapon]] ===
+|-
+| <sqf>_group</sqf>
+| "StaticWeaponUnpacked"
+| <sqf>params ["_group", "_leader", "_gunner", "_assistant", "_weapon"];</sqf>
+
+|-
+! colspan="3" |
+=== Structures ===
+|-
+| <sqf>missionNamespace</sqf>
+| "StructureDamaged" {{GVI|arma3|2.22}}
+| <sqf>params ["_structure", "_shot", "_position", "_velocity", "_ammo", "_explosive", "_indirectHit", "_invArmor", "_explPow", "_damage"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "StructureDestroyed" {{GVI|arma3|2.22}}
+| <sqf>params ["_structure", "_killer", "_instigator", "_useEffects", "_shot", "_real"];</sqf>
+
+|-
+! colspan="3" |
+
+=== Module Curator RemoteControl ===
+|-
+| <sqf>_curator</sqf>
+| "curatorObjectRemoteControlled"
+| <sqf>params ["_curator", "_player", "_unit", "_isRemoteControlled"];</sqf>
+* _isRemoteControlled is [[true]] when entering remote control, [[false]] when exiting
+
+|-
+! colspan="3" |
+=== Module End Game ===
+|-
+| <sqf>missionNamespace</sqf>
+| "EndGame_OnStageChanged"
+| <sqf>params ["_stage", "_side"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "EndGame_OnStartGameObjectiveCompleted"
+| <sqf>params ["_side"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "EndGame_OnObjectiveStateChanged"
+| <sqf>params ["_objective", "_side", "_newState"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "EndGame_OnObjectiveCompleted"
+| <sqf>params ["_objective"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "EndGame_OnObjectiveEnded"
+| <sqf>params ["_objective"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "EndGame_OnDownloadCompleted"
+| <sqf>params ["_side", "_isUpload"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "EndGame_Ended"
+| <sqf>params ["_winnerSide", "_loserSide", "_isDraw"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "onUploadStateChanged"
+| <sqf>params ["_side"]; // can be nil</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "onPickupInfoChanged"
+| <sqf>params ["_BIS_hvt_pickupInfo"];</sqf>
+
+|-
+! colspan="3" |
+=== Module Game Master (Zeus) ===
+|-
+| <sqf>_curator</sqf>
+| "curatorGroupPlaced"
+| <sqf>params ["_group"];</sqf>
+|-
+| <sqf>_curator</sqf>
+| "curatorObjectPlaced"
+| <sqf>params ["_object"];</sqf>
+|-
+| <sqf>_curator</sqf>
+| "curatorUnitAssigned"
+| <sqf>params ["_curator", "_player"];</sqf>
+
+|-
+! colspan="3" |
+=== Module Rich Curve Key ===
+|-
+| _curKey
+| "reached"
+| <sqf>params ["_curKey"];</sqf>
+
+|-
+! colspan="3" |
+=== Module Sector ===
+|-
+| <sqf>_sector</sqf>
+| "ownerChanged"
+| <sqf>params ["_sector", "_owner", "_ownerOld"];</sqf>
+
+|-
+! colspan="3" |
+=== Module Spawn AI: Sector Tactic ===
+|-
+| <sqf>missionNamespace</sqf>
+| "bis_groundSupport_groupSpawned"
+| <sqf>params ["_bis_groundSupport_groupSpawned", "_group", "_side"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "bis_groundSupport_wiped"
+| <sqf>params ["_bis_groundSupport_wiped", "_group"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "bis_groundSupport_inEnemySector"
+| <sqf>params ["_bis_groundSupport_inEnemySector", "_group"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "bis_groundSupport_destinationReached"
+| <sqf>params ["_bis_groundSupport_destinationReached", "_group"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "bis_groundSupport_groupTypeChanged"
+| <sqf>params ["_bis_groundSupport_groupTypeChanged", "_group", "_type", "_currentType"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "bis_groundSupport_decimated"
+| <sqf>params ["_bis_groundSupport_decimated", "_group"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "bis_groundSupport_farFromDestination"
+| <sqf>params ["_bis_groundSupport_farFromDestination", "_group"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "bis_groundSupport_needTransport"
+| <sqf>params ["_bis_groundSupport_needTransport", "_group"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "bis_groundSupport_joined"
+| <sqf>params ["_bis_groundSupport_joined", "_group", "_transportGroup"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "bis_groundSupport_closeToDestination"
+| <sqf>params ["_bis_groundSupport_closeToDestination", "_group"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "bis_groundSupport_needEvac"
+| <sqf>params ["_bis_groundSupport_needEvac", "_group"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "bis_groundSupport_needAmmo"
+| <sqf>params ["_bis_groundSupport_needAmmo", "_group"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "bis_groundSupport_needSupport"
+| <sqf>params ["_bis_groundSupport_needSupport", "_group", "_reportedVehicle"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "bis_groundSupport_boarded"
+| <sqf>params ["_bis_groundSupport_boarded", "_group", "_transport"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "bis_groundSupport_transportStarted"
+| <sqf>params ["_bis_groundSupport_transportStarted", "_group", "_transport"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "bis_groundSupport_transportEnded"
+| <sqf>params ["_bis_groundSupport_transportEnded", "_group", "_transport"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "bis_groundSupport_transportAborted"
+| <sqf>params ["_bis_groundSupport_transportAborted", "_group", "_transport"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "bis_groundSupport_disembarked"
+| <sqf>params ["_bis_groundSupport_disembarked", "_group", "_transport"];</sqf>
+
+|-
+! colspan="3" |
+=== Module Timeline ===
+|-
+| <sqf>_timeline</sqf>
+| "finished"
+| <sqf>params ["_timeline"];</sqf>
+|-
+| <sqf>_timeline</sqf>
+| "played"
+| {{n/a}}
+|-
+| <sqf>_timeline</sqf>
+| "looped"
+| <sqf>params ["_timeline"];</sqf>
+
+|-
+! colspan="3" |
+=== Module Trident ===
+|-
+| <sqf>missionNamespace</sqf>
+| "BIS_fnc_moduleTrident_updated"
+| <sqf>params ["_sideA", "_sideB", "_areFriendly"];</sqf>
+
+|-
+! colspan="3" |
+=== Module Vehicle Respawn ===
+|-
+| <sqf>missionNamespace</sqf>
+| "respawn"
+| <sqf>params ["_newVeh", "_veh"];</sqf>
+
+|-
+! colspan="3" |
+=== Spectrum Analyzer Device ===
+|-
+| <sqf>missionNamespace</sqf>
+| "SpectrumAnalyzerOpened"
+| <sqf>params ["_display"];</sqf>
+|-
+| <sqf>missionNamespace</sqf>
+| "SpectrumAnalyzerClosed"
+| <sqf>params ["_display"];</sqf>
+|}
+
+
+== {{Name|arma3contact}} Events ==
+
+{{Feature|arma3contact}}
+
+{{Columns|5|
+* "antennaAdded"
+* "antennaDeleted"
+* "arsenalPreOpen"
+* "behaviourChanged"
+* "currentSignalChanged"
+* "dangerZoneEntered"
+* "dangerZoneExited"
+* "diaryRecordSet"
+* "dominantSideChanged"
+* "gravitPulseHit"
+* "gravitPulseRewarded"
+* "handleCombat"
+* "handleWarningShot"
+* "moveToModelSpaceCompleted"
+* "puzzleReset"
+* "puzzleStepCompleted"
+* "puzzleTerminated"
+* "refresh"
+* "respawnTicketsExhausted"
+* "rotationChanged"
+* "signalEnded"
+* "signalScanned"
+* "signalStartedPassive"
+* "siteSpawned"
+* "taskSet"
+* "translationChanged"
+* "transmittingEnded"
+* "transmittingStarted"
+* "wpPatrolEnded"
+* "wpPatrolStarted"
+}}
+
+
+[[Category: Event Handlers]]

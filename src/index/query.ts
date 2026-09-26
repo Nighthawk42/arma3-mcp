@@ -27,6 +27,18 @@ export function getEntryByName(db: Db, name: string, type?: Entry["type"]): Entr
   return row ? parseEntry(row) : undefined;
 }
 
+/**
+ * Every entry with this name and type. Event handlers need it: `HitPart` is
+ * raised on entities, projectiles and groups, each documented separately.
+ */
+export function getEntriesByName(db: Db, name: string, type: Entry["type"]): Entry[] {
+  return (
+    db.prepare("select data from entries where name = ? collate nocase and type = ?").all(name, type) as Array<{
+      data: string;
+    }>
+  ).map(parseEntry);
+}
+
 /** Near-miss suggestions for a name that did not resolve. */
 export function suggestNames(db: Db, name: string, limit = 8): string[] {
   const rows = db

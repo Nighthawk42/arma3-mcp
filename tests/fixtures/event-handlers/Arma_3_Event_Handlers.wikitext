@@ -1,0 +1,2665 @@
+{{TOC|side|0.85}}
+An Event Handler (abbreviated to EH) allows you to automatically monitor and then execute custom code upon particular events being triggered.<br>
+See also [[Event Scripts]] for special event triggered scripts.
+
+{{TOC|subtoc
+|title= Main Categories
+|content=
+{{Columns|3|
+# {{Link|#Basic Event Handlers}}
+# {{Link|#Multiplayer Event Handlers}}
+# {{Link|#Mission Event Handlers}}
+# {{Link|#Curator Event Handlers}}
+# {{Link|#UserAction Event Handlers}}
+# {{Link|#Projectile Event Handlers}}
+# {{Link|#Group Event Handlers}}
+# {{Link|#Game UI Event Handlers}}
+# {{Link|#Control/Display UI Event Handlers}}
+# {{Link|#Music Event Handlers|Music Event Handlers}}
+# {{Link|#Eden Editor|Eden Editor}}
+# {{Link|#Public Variable Broadcast Event}}
+# {{Link|#Weapon Muzzle Config Events}}
+# {{Link|#Ammo Config Events}}
+# {{Link|#BI Scripted Events}}
+}}
+}}
+
+
+== Basic Event Handlers ==
+
+The object-based Event Handler is always executed on the computer where it was added.
+
+Commands:
+* [[addEventHandler]]
+* [[removeEventHandler]]
+* [[removeAllEventHandlers]]
+
+{{ArgTitle|3|AmmoExplodedNear|{{GVI|arma3|2.22}}}}
+
+Triggers when ammo explodes in some damage range of the object. This EH triggers where the ammo is 'real', similar to HitPart.
+
+<sqf>
+this addEventHandler ["AmmoExplodedNear", {
+	params ["_object", "_shot", "_position", "_velocity", "_ammo", "_explosive", "_indirectHit", "_invArmor", "_damage"];
+}];
+</sqf>
+
+* object: [[Object]] - object the event handler is assigned to
+* shot: [[Object]] - shot that has exploded
+* position: [[Array]] - world position of the shot
+* velocity: [[Array]] - world velocity of the shot
+* ammmo: [[String]] - config ammo class name
+* explosive: [[Number]] - config value for 'explosive'
+* indirectHit: [[Number]] - config value for 'indirectHit'
+* invArmor: [[Number]] - calculated inverse armor from config value
+* damage: [[Number]] - a rough estimate of the potential damage to the center of the object based on config values and the distance
+
+=== AnimChanged ===
+
+{{Icon|globalArgument|32}}<br>
+Triggered every time a new animation is started. This EH is only triggered for the 1st animation state in a sequence.
+
+<sqf>
+this addEventHandler ["AnimChanged", {
+	params ["_unit", "_anim"];
+}];
+</sqf>
+
+* unit: [[Object]] - object the event handler is assigned to
+* anim: [[String]] - name of the anim that is started
+
+=== AnimDone ===
+
+{{Icon|globalArgument|32}}<br>
+Triggered every time an animation is finished. Triggered for all animation states in a sequence.
+
+<sqf>
+this addEventHandler ["AnimDone", {
+	params ["_unit", "_anim"];
+}];
+</sqf>
+
+* unit: [[Object]] - object the event handler is assigned to
+* anim: [[String]] - name of the anim that has been finished
+
+=== AnimStateChanged ===
+
+{{Icon|globalArgument|32}}<br>
+Triggered every time an animation state changes. Triggered for all animation states in a sequence.
+
+<sqf>
+this addEventHandler ["AnimStateChanged", {
+	params ["_unit", "_anim"];
+}];
+</sqf>
+
+* unit: [[Object]] - object the event handler is assigned to
+* anim: [[String]] - name of the anim that has been started
+
+{{ArgTitle|3|Assembled|{{GVI|arma3|2.18}}}}
+
+{{Icon|localArgument|32}}<br>
+Triggers when weapon that is moved out of the world is assembled again. EH should be attached to the entity.<br>
+
+<sqf>
+this addEventHandler ["Assembled", {
+	params ["_entity", "_unit", "_primaryBag", "_secondaryBag"];
+}];
+</sqf>
+
+* entity: [[Object]] - weapon this event is assigned to
+* unit: [[Object]] - person who assembled the weapon
+* primaryBag: [[Object]] - first backpack object which was entity disassembled into (just before it is deleted)
+* secondaryBag: [[Object]] - second backpack object which was entity disassembled into (just before it is deleted)
+
+{{ArgTitle|3|Attached|{{GVI|arma3|2.18}}}}
+
+Triggered after an object has been attached to another object (see [[attachTo]]).
+
+<sqf>
+this addEventHandler ["Attached", {
+	params ["_attachedObj", "_parentObj", "_isReattach", "_offset", "_memoryPointIndex", "_followBoneRotation"];
+}];
+</sqf>
+
+* attachedObj: [[Object]]
+* parentObj: [[Object]]
+* isReattach: [[Boolean]] - [[true]] if <var>attachedObj</var> was already attached to <var>parentObj</var>, e.g. if only the offset was changed
+* offset: [[Array]] format [[PositionRelative]]
+* memoryPointIndex: [[Number]]
+* followBoneRotation: [[Boolean]]
+
+{{ArgTitle|3|CargoLoaded|{{GVI|arma3|2.06}}}}
+
+{{Icon|globalArgument|32}}<br>
+Triggered when a vehicle is loaded into another vehicle ([[setVehicleCargo|ViV]]).<br>
+It can be added to either the transport vehicle, or the cargo vehicle, and will fire for both cases.
+
+<sqf>
+this addEventHandler ["CargoLoaded", {
+	params ["_parentVehicle", "_cargoVehicle"];
+}];
+</sqf>
+
+* parentVehicle: [[Object]] - the transport (parent) vehicle
+* cargoVehicle: [[Object]] - the cargo (child) vehicle
+
+{{ArgTitle|3|CargoUnloaded|{{GVI|arma3|2.06}}}}
+
+{{Icon|globalArgument|32}}<br>
+Triggered when a vehicle is unloaded from another vehicle ([[setVehicleCargo|ViV]]).<br>
+It can be added to either the transport vehicle, or the cargo vehicle, and will fire for both cases.
+
+<sqf>
+this addEventHandler ["CargoUnloaded", {
+	params ["_parentVehicle", "_cargoVehicle"];
+}];
+</sqf>
+
+* parentVehicle: [[Object]] - the transport (parent) vehicle
+* cargoVehicle: [[Object]] - the cargo (child) vehicle
+
+{{ArgTitle|3|ContainerClosed|{{GVI|arma3|1.32}}}}
+
+{{Icon|globalArgument|32}}<br>
+Triggers when player finished accessing cargo container.
+This event handler is similar to [[#InventoryClosed|InventoryClosed]] EH, but needs to be assigned to the container rather than the player.<br>
+'''Note:''' will trigger only for the unit opening container.
+
+<sqf>
+this addEventHandler ["ContainerClosed", {
+	params ["_container", "_unit"];
+}];
+</sqf>
+
+* container: [[Object]] - cargo container.
+* unit: [[Object]] - unit who accessed the container
+
+{{ArgTitle|3|ContainerOpened|{{GVI|arma3|1.32}}}}
+
+{{Icon|globalArgument|32}}<br>
+Triggers when cargo container is accessed by player.
+This event handler is similar to [[#InventoryOpened|InventoryOpened]] EH, but needs to be assigned to the container rather than the player and cannot be overridden.<br>
+'''Note:''' will trigger only for the unit opening container.
+
+<sqf>
+this addEventHandler ["ContainerOpened", {
+	params ["_container", "_unit"];
+}];
+</sqf>
+
+* container: [[Object]] - cargo container
+* unit: [[Object]] - unit who accessed the container
+
+{{ArgTitle|3|ControlsShifted|{{GVI|arma3|1.00}}}}
+
+{{Icon|globalArgument|32}}{{Icon|localEffect|32}}<br>
+Triggers when control of a vehicle is shifted (pilot->co-pilot, co-pilot->pilot), usually when user performs an [[action]] such as [[action/Arma_3_Actions_List#TakeVehicleControl | TakeVehicleControl]], [[action/Arma_3_Actions_List#SuspendVehicleControl | SuspendVehicleControl]], [[action/Arma_3_Actions_List#UnlockVehicleControl | UnlockVehicleControl]], [[action/Arma_3_Actions_List#LockVehicleControl | LockVehicleControl]], or when [[enableCopilot]] command is used. This event handler will always fire on the PC where [[action]] is triggered as well as where the vehicle is [[Multiplayer Scripting#Locality|local]] at the time. When control of the vehicle is shifted, the locality of the vehicle changes to the locality of the new controller. For example, if helicopter is [[Multiplayer Scripting#Locality|local]] to the server and co-pilot takes controls, the helicopter changes locality to co-pilot PC.
+This means that if "ControlsShifted" EH was added on both server and client, "Take Controls" action will trigger EH on both, client and server PC, but subsequent co-pilot "Release Controls" action will trigger only on co-pilot's PC, because vehicle will be local to co-pilot at this point. There is also a slightly better mission version of [[Arma 3: Mission Event Handlers#ControlsShifted | ControlsShifted]] event handler.
+
+<sqf>
+this addEventHandler ["ControlsShifted", {
+	params ["_vehicle", "_activeCoPilot", "_oldController"];
+}];
+</sqf>
+
+* vehicle: [[Object]] - vehicle which controls were shifted
+* activeCoPilot: [[Object]] - co-pilot unit which controls vehicle after this event. [[objNull]] if co-pilot is not controlling the vehicle
+* oldController: [[Object]] - unit who controlled vehicle before this event
+
+=== Dammaged ===
+
+{{Icon|globalArgument|32}}<br>
+Triggered when the unit is damaged. In ArmA works with all vehicles not only men like in OFP.
+
+'''Notes:'''
+* The typo is "intentional": it is Da'''mm'''aged with two "m".
+* If simultaneous damage occured (e.g. via grenade) EH might be triggered several times.
+* The Dammaged EH will not necessarily fire if only minor damage occurred (e.g. firing a bullet at a tank), even though the damage increased.
+
+<sqf>
+this addEventHandler ["Dammaged", {
+	params ["_unit", "_hitSelection", "_damage", "_hitPartIndex", "_hitPoint", "_shooter", "_projectile"];
+}];
+</sqf>
+
+* unit: [[Object]] - object the event handler is assigned to
+* hitSelection: [[String]] - name of the selection where the unit was damaged
+* damage: [[Number]] - resulting level of damage
+* {{GVI|arma3|1.68}} hitPartIndex: [[Number]] - hit index of the hit selection
+* {{GVI|arma3|1.68}} hitPoint: [[String]] - hit point Cfg name
+* {{GVI|arma3|1.70}} shooter: [[Object]] - shooter reference (to get instigator use [[getShotParents]] on projectile)
+* {{GVI|arma3|1.70}} projectile: [[Object]] - the projectile that caused damage
+
+{{ArgTitle|3|Deleted (Entity)|{{GVI|arma3|1.68}}}}
+
+{{Icon|globalArgument|32}}<br>
+Triggered just before the assigned entity is deleted.
+
+<sqf>
+this addEventHandler ["Deleted", {
+	params ["_entity"];
+}];
+</sqf>
+
+* entity: [[Object]] - object the event handler is assigned to
+
+{{ArgTitle|3|Detached|{{GVI|arma3|2.18}}}}
+
+Triggered after an object has been detached from its parent object (see [[detach]]). Does not fire if the parent object was deleted.
+
+<sqf>
+this addEventHandler ["Detached", {
+	params ["_attachedObj", "_parentObj"];
+}];
+</sqf>
+
+* attachedObj: [[Object]]
+* parentObj: [[Object]]
+
+{{ArgTitle|3|Disassembled|{{GVI|arma3|2.00}}}}
+
+{{Icon|localArgument|32}}<br>
+Triggers when entity such as weapon/backpack gets disassembled. EH should be attached to the entity.<br>
+
+<sqf>
+this addEventHandler ["Disassembled", {
+	params ["_entity", "_primaryBag", "_secondaryBag", "_unit"];
+}];
+</sqf>
+
+* entity: [[Object]] - weapon this event is assigned to (just before is is moved out of the world)
+* primaryBag: [[Object]] - first backpack object which was entity disassembled into
+* secondaryBag: [[Object]] - second backpack object which was entity disassembled into
+* {{GVI|arma3|2.18}} unit: [[Object]] - person who disassembled the weapon
+
+=== Engine ===
+
+{{Icon|globalArgument|32}}<br>
+Triggered when the engine of the unit is turned on/off.
+{{Feature|informative|
+Although the event is global, on clients (non-server) and applied to remote vehicles, it will fire only if the vehicle is closer than about 6 km from the camera.
+Should the vehicle be far away, it will fire as soon as the camera and vehicle are close enough together, alongside the [[isEngineOn]] flag change.
+}}
+
+<sqf>
+this addEventHandler ["Engine", {
+	params ["_vehicle", "_engineState"];
+}];
+</sqf>
+
+* vehicle: [[Object]] - vehicle the event handler is assigned to
+* engineState: [[Boolean]] - true when the engine is turned on, false when turned off
+
+{{ArgTitle|3|EpeContact|{{GVI|arma3|1.00}}}}
+
+{{Icon|globalArgument|32}}<br>
+Triggered when object collision (PhysX) is in progress.
+
+<sqf>
+this addEventHandler ["EpeContact", {
+	params ["_object1", "_object2", "_selection1", "_selection2", "_force", "_reactVect", "_worldPos"];
+}];
+</sqf>
+
+* object1: [[Object]] - object with attached handler
+* object2: [[Object]] - object which is colliding with object1
+* selection1: [[String]] - selection of object1 which is colliding - not in use at this moment, empty string is always returned
+* selection2: [[String]] - selection of object2 which is colliding - not in use at this moment, empty string is always returned
+* force: [[Number]] - force of collision
+* {{GVI|arma3|2.12}} reactVect: [[Array]] - impact reaction force vector
+* {{GVI|arma3|2.12}} worldPos: [[PositionWorld]] - point of impact in world coordinates
+
+{{ArgTitle|3|EpeContactEnd|{{GVI|arma3|1.00}}}}
+
+{{Icon|globalArgument|32}}<br>
+Triggered when object collision (PhysX) ends.
+
+<sqf>
+this addEventHandler ["EpeContactEnd", {
+	params ["_object1", "_object2", "_selection1", "_selection2", "_force"];
+}];
+</sqf>
+
+* object1: [[Object]] - object with attached handler
+* object2: [[Object]] - object which is colliding with object1
+* selection1: [[String]] - selection of object1 which is colliding - not in use at this moment, empty string is always returned
+* selection2: [[String]] - selection of object2 which is colliding - not in use at this moment, empty string is always returned
+* force: [[Number]] - force of collision
+
+{{ArgTitle|3|EpeContactStart|{{GVI|arma3|1.00}}}}
+
+{{Icon|globalArgument|32}}<br>
+Triggered when object collision (PhysX) starts.
+
+<sqf>
+this addEventHandler ["EpeContactStart", {
+	params ["_object1", "_object2", "_selection1", "_selection2", "_force", "_reactForce", "_worldPos"];
+}];
+</sqf>
+
+* object1: [[Object]] - object with attached handler
+* object2: [[Object]] - object which is colliding with object1
+* select1: [[String]] - selection of object1 which is colliding - not in use at this moment, empty string is always returned
+* select2: [[String]] - selection of object2 which is colliding - not in use at this moment, empty string is always returned
+* force: [[Number]] - force of collision
+* {{GVI|arma3|2.12}} reactForce: [[Array]] - impact reaction force vector
+* {{GVI|arma3|2.12}} worldPos: [[PositionWorld]] - point of impact in world coordinates
+
+{{ArgTitle|3|Explosion|{{GVI|arma3|0.76}}}}
+
+{{Icon|globalArgument|32}}<br>
+Triggered when a vehicle or unit is damaged by a nearby explosion.
+It can be assigned to a remote unit or vehicle but will only fire on the PC where EH is added and explosion is local, i.e. it really needs to be added on every PC and JIP and will fire only where the explosion is originated.
+
+<sqf>
+this addEventHandler ["Explosion", {
+	params ["_vehicle", "_damage", "_explosionSource"];
+}];
+</sqf>
+
+* vehicle: [[Object]] - object the event handler is assigned to
+* damage: [[Number]] - damage inflicted to the object
+* {{GVI|arma3|2.10}} explosionSource: [[Object]] - the exploding object (NOT the shooter) - may be [[objNull]] in some cases
+
+{{Feature|informative|
+This event will fire even for tiniest of explosion damage (which appears as 0 damage argument), while {{Link|#HitPart (Entity)}} could ignore such damage and not fire.
+Example of such event would be a tank firing AP round and hitting ground a meter away from the vehicle, it does not produce an explosion yet its {{Link|CfgAmmo Config Reference#indirectHit|indirectHit}} could still cause tiny amount of damage to weak hit points (car wheels, headlights, etc.).
+In such case you might not get any {{Link|#HitPart (Entity)}} event fires, get some {{Link|#HandleDamage}} events if target is local, and get this Explosion event.}}
+
+=== Fired ===
+
+{{Icon|globalArgument|32}}<br>
+Triggered when the unit fires a weapon.<br>
+This EH will not trigger if a unit fires out of a vehicle. For those cases an EH has to be attached to that particular vehicle.
+When "Manual Fire" is used, the ''gunner'' is [[objNull]] if gunner is not present or the ''gunner'' is not the one who fires.
+To check if "Manual Fire" is on, use [[isManualFire]]. The actual shot instigator could be retrieved with [[getShotParents]] command.<br>
+{{Feature|warning|
+'''Special multiplayer behaviour:''' When added to a remote unit or vehicle, this EH will only fire if said entity is within range of the camera.
+That range is determined by the fired ammo's highest visibleFire and audibleFire config value.
+In case of units, muzzle attachment coefficients are applied too.
+}}
+
+<sqf>
+this addEventHandler ["Fired", {
+	params ["_unit", "_weapon", "_muzzle", "_mode", "_ammo", "_magazine", "_projectile", "_gunner"];
+}];
+</sqf>
+
+* unit: [[Object]] - object the event handler is assigned to
+* weapon: [[String]] - fired weapon
+* muzzle: [[String]] - muzzle that was used
+* mode: [[String]] - current mode of the fired weapon
+* ammo: [[String]] - ammo used
+* magazine: [[String]] - magazine name which was used
+* projectile: [[Object]] - object of the projectile that was shot out
+* {{GVI|arma3|1.66}} gunner: [[Object]] - gunner whose weapons are firing.
+
+{{ArgTitle|3|FiredMan|{{GVI|arma3|1.66}}}}
+
+{{Icon|globalArgument|32}}<br>
+Triggered when the unit fires a weapon. This EH must be attached to a soldier and unlike with "Fired" EH, it will fire regardless of whether the soldier is on foot or firing vehicle weapon.
+For [[remoteControl]]ed unit use "Fired" EH instead.
+{{Feature|warning|
+'''Special multiplayer behaviour:''' When added to a remote unit or vehicle, this EH will only fire if said entity is within range of the camera.
+That range is determined by the fired ammo's highest visibleFire and audibleFire config value.
+In case of units, muzzle attachment coefficients are applied too.
+}}
+
+<sqf>
+this addEventHandler ["FiredMan", {
+	params ["_unit", "_weapon", "_muzzle", "_mode", "_ammo", "_magazine", "_projectile", "_vehicle"];
+}];
+</sqf>
+
+* unit: [[Object]] - unit the event handler is assigned to (the instigator)
+* weapon: [[String]] - fired weapon
+* muzzle: [[String]] - muzzle that was used
+* mode: [[String]] - current mode of the fired weapon
+* ammo: [[String]] - ammo used
+* magazine: [[String]] - magazine name which was used
+* projectile: [[Object]] - object of the projectile that was shot out
+* vehicle: [[Object]] - vehicle, if weapon is vehicle weapon, otherwise [[objNull]]
+
+=== FiredNear ===
+
+{{Icon|globalArgument|32}}<br>
+Triggered when a weapon is fired somewhere ''near'' the unit or vehicle. It is also triggered if the unit itself is firing.<br>
+When "Manual Fire" is used, the ''gunner'' is [[objNull]] if gunner is not present or the ''gunner'' is not the one who fires.
+To check if "Manual Fire" is on, use [[isManualFire]]. The actual shot instigator can be retrieved with [[getShotParents]] command.<br>
+{{GVI|arma3|1.30}} Works with thrown weapons (using the "Throw" weapon) like grenades.
+
+<sqf>
+this addEventHandler ["FiredNear", {
+	params ["_unit", "_firer", "_distance", "_weapon", "_muzzle", "_mode", "_ammo", "_gunner"];
+}];
+</sqf>
+
+* unit: [[Object]] - object the event handler is assigned to
+* firer: [[Object]] - object which fires a weapon near the unit
+* distance: [[Number]] - distance in meters between the ''unit'' and ''firer'' (max. distance ~69m)
+* weapon: [[String]] - fired weapon
+* muzzle: [[String]] - muzzle that was used
+* mode: [[String]] - current mode of the fired weapon
+* ammo: [[String]] - ammo used
+* {{GVI|arma3|1.66}} gunner: [[Object]] - gunner, whose weapons are fired
+
+=== Fuel ===
+
+{{Icon|globalArgument|32}}<br>
+Triggered when the vehicle's fuel status changes between non-empty and empty or between empty and non-empty.
+
+<sqf>
+this addEventHandler ["Fuel", {
+	params ["_vehicle", "_hasFuel"];
+}];
+</sqf>
+
+* vehicle: [[Object]] - vehicle the event handler is assigned to
+* hasFuel: [[Boolean]] - false when has no fuel, true when has some fuel
+
+=== Gear ===
+
+{{Icon|globalArgument|32}}<br>
+Triggered when the unit lowers/retracts the landing gear, whether it is a helicopter or a plane.
+Also triggered for helicopters in landing mode, regardless if they have retractable gear or not.
+{{Feature|informative|
+Not to be confused with ''[[Arma 3: Event Handlers#InventoryOpened|InventoryOpened]]'' and ''[[Arma 3: Event Handlers#InventoryClosed|InventoryClosed]]'' events, ''Gear'' fires when the landing gear state on an aircraft has changed.
+}}
+
+<sqf>
+this addEventHandler ["Gear", {
+	params ["_vehicle", "_gearState"];
+}];
+</sqf>
+
+* vehicle: [[Object]] - vehicle the event handler is assigned to
+* gearState: [[Boolean]] - true when the gear is lowered, false when retracted
+
+{{ArgTitle|3|GestureChanged|{{GVI|arma3|2.06}}}}
+
+{{Icon|globalArgument|32}}<br>
+Triggered every time a new gesture is played.
+
+<sqf>
+this addEventHandler ["GestureChanged", {
+	params ["_unit", "_gesture"];
+}];
+</sqf>
+
+* unit: [[Object]] - object the event handler is assigned to
+* gesture: [[String]] - name of the gesture that has started playing
+
+{{ArgTitle|3|GestureDone|{{GVI|arma3|2.06}}}}
+
+{{Icon|globalArgument|32}}<br>
+Triggered every time a gesture is finished.
+
+<sqf>
+this addEventHandler ["GestureDone", {
+	params ["_unit", "_gesture"];
+}];
+</sqf>
+
+* unit: [[Object]] - object the event handler is assigned to
+* gesture: [[String]] - name of the gesture that has been finished
+
+=== GetIn ===
+
+{{Icon|globalArgument|32}}<br>
+Triggers when a unit enters the vehicle to which this EH has been added. This EH is triggered by moveInXXXX commands and "GetInXXXX" [[action]]s, but not upon a seat change within the same vehicle.
+
+In vehicles with multi-turret setup, entering any turret will show "gunner" for position.
+
+<sqf>
+this addEventHandler ["GetIn", {
+	params ["_vehicle", "_role", "_unit", "_turret"];
+}];
+</sqf>
+
+* vehicle: [[Object]] - vehicle the event handler is assigned to
+* role: [[String]] - can be either "driver", "gunner", "commander" or "cargo"
+* unit: [[Object]] - unit that entered the vehicle
+* {{GVI|arma3|1.36}} turret: [[Array]] - turret path
+
+{{ArgTitle|3|GetInMan|{{GVI|arma3|1.58}}}}
+
+{{Icon|globalArgument|32}}<br>
+Triggers when a unit enters a vehicle. Similar to "GetIn" but must be assigned to a unit and not vehicle.
+Persistent on respawn if assigned where unit was [[Multiplayer Scripting#Locality|local]]. This EH is triggered by moveInXXXX commands and "GetInXXXX" [[action]]s.
+
+<sqf>
+this addEventHandler ["GetInMan", {
+	params ["_unit", "_role", "_vehicle", "_turret"];
+}];
+</sqf>
+
+* unit: [[Object]] - unit the event handler is assigned to
+* role: [[String]] - can be either "driver", "gunner", "commander" or "cargo"
+* vehicle: [[Object]] - vehicle the unit entered
+* turret: [[Array]] - turret path
+
+=== GetOut ===
+
+{{Icon|globalArgument|32}}<br>
+Triggers when a unit gets out from the vehicle to which this EH has been added.
+This EH is triggered by [[moveOut]], "GetOut" & "Eject" [[action]]s, if an [[alive]] [[crew]] member disconnects or is deleted, but not upon a seat change within the same vehicle.
+
+<sqf>
+this addEventHandler ["GetOut", {
+	params ["_vehicle", "_role", "_unit", "_turret", "_isEject"];
+}];
+</sqf>
+
+* vehicle: [[Object]] - vehicle the event handler is assigned to
+* role: [[String]] - can be either "driver", "gunner", "commander" or "cargo"
+* unit: [[Object]] - unit that left the vehicle
+* {{GVI|arma3|1.36}} turret: [[Array]] - turret path
+* {{GVI|arma3|2.14}} isEject: [[Boolean]] - [[true]] if unit used 'Eject' action
+
+{{ArgTitle|3|GetOutMan|{{GVI|arma3|1.58}}}}
+
+{{Icon|globalArgument|32}}<br>
+Triggers when a unit exits a vehicle. Similar to "GetOut" but must be assigned to a unit and not vehicle.
+Persistent on respawn if assigned where unit was [[Multiplayer Scripting#Locality|local]]. This EH is triggered by [[moveOut]] and "GetOut" & "Eject" [[action]]s.
+
+<sqf>
+this addEventHandler ["GetOutMan", {
+	params ["_unit", "_role", "_vehicle", "_turret", "_isEject"];
+}];
+</sqf>
+
+* unit: [[Object]] - unit the event handler is assigned to
+* role: [[String]] - can be either "driver", "gunner", "commander" or "cargo"
+* vehicle: [[Object]] - vehicle that the unit left
+* turret: [[Array]] - turret path
+* {{GVI|arma3|2.14}} isEject: [[Boolean]] - [[true]] if unit used 'Eject' action
+
+=== HandleDamage ===
+
+{{Icon|globalArgument|32}}<br>
+Triggers when the unit is damaged and fires for each damaged selection separately
+Works with all vehicles.
+This EH can accept a remote unit as argument however it will only fire when the unit is [[Multiplayer Scripting#Locality|local]] to the PC this event handler was added on.
+For example, you can add this event handler to one particular vehicle on every PC.
+When this vehicle gets hit, only EH on PC where the vehicle is currently [[Multiplayer Scripting#Locality|local]] will fire.
+
+If the provided code returns a numeric value, this value will overwrite the default damage of given selection after processing.
+If no value is returned, the default damage processing will be done - this allows for safe stacking of this event handler.
+Only the return value of the last added "HandleDamage" EH is considered.
+{{Feature|important|
+A return value of 0 will make the unit '''invulnerable''' if damage is not scripted in other ways (i.e using [[setDamage]] and/or [[setHit]] for additional damage handling).
+The return value is the hit zone's '''absolute damage value''', '''not''' the damage to be ''added'' to it.
+}}
+
+'''Notes:'''
+* Multiple "HandleDamage" EHs can be added to the same unit. If multiple EHs return damage value for custom damage handling, only last returned value will be considered by the engine.
+EHs that do not return value can be safely added after EHs that do return value.
+* You can save the last event as timestamp ([[diag_tickTime]]) onto the unit, as well as the current health of the unit/its selections, with [[setVariable]] and query it on each "HandleDamage" event with [[getVariable]] to define a system how to handle the "HandleDamage" event.
+* "HandleDamage" will continue to trigger even if the unit is already dead.
+* "HandleDamage" is persistent. If you add it to the [[player]] object, it will continue to exist after player respawned.
+* "HandleDamage" can trigger "twice" per damage event. Once for direct damage, once for indirect damage (explosive damage). This can happen even in the same frame, but is unlikely.
+* Use [[setMissionOptions]] to filter out no damage calls or fake head hit.
+
+Additional {{Link|https://forums.bistudio.com/forums/topic/205515-handledamage-event-handler-explained/|Celery's explanation (Updated by ShadowRanger for {{arma3}})}}.
+
+<sqf>
+this addEventHandler ["HandleDamage", {
+	params ["_unit", "_selection", "_damage", "_source", "_projectile", "_hitPartIndex", "_instigator", "_hitPoint", "_directHit", "_context"];
+}];
+</sqf>
+
+* unit: [[Object]] - object the event handler is assigned to
+* selection: [[String]] - name of the selection where the unit was damaged.
+** "" for overall structural damage
+** "?" for unknown selections
+* damage: [[Number]] - resulting level of damage for the selection
+* source: [[Object]] - the source unit that caused the damage
+* projectile: [[String]] - classname of the projectile that caused inflicted the damage. ("" for unknown, such as fall damage)
+* {{GVI|arma3|1.50}} hitPartIndex: [[Number]] - hit part index of the hit point, -1 otherwise
+* {{GVI|arma3|1.66}} instigator: [[Object]] - person who pulled the trigger
+* {{GVI|arma3|1.68}} hitPoint: [[String]] - hit point Cfg name
+* {{GVI|arma3|2.12}} directHit: [[Boolean]] - [[true]] for direct projectile damage, [[false]] for explosion splash damage and all other kinds of damage like fall damage, fire damage, collision damage, etc.
+* {{GVI|arma3|2.16}} context: [[Number]] - some additional context for the event:
+<br>0 : TotalDamage - total damage adjusted before iteration through hitpoints
+<br>1 : HitPoint - some hit point processed during iteration
+<br>2 : LastHitPoint - the last hitpoint from iteration is processed
+<br>3 : FakeHeadHit - head hit that is added/adjusted
+<br>4 : TotalDamageBeforeBleeding - total damage is adjusted before calculating bleeding
+
+{{Feature|informative|Between an unknown version (confirmed in {{arma3}} v1.70) until v1.78 HandleDamage event triggered for every selection of a vehicle, no matter if the section was damaged or not.}}
+
+=== HandleHeal ===
+
+{{Icon|globalArgument|32}}<br>
+Triggered when unit starts healing process (player using heal action on self or other unit, scripted [[action]] or AI heals after being ordered or on its own).
+This event handler must be added to the 'injured' (could be added to Init field in editor) and in multiplayer will trigger only on PC where 'healer' is [[Multiplayer Scripting#Locality|local]]. If code returns anything but [[true]], engine side healing follows, otherwise healing is aborted.
+{{Feature|important|When AI unit is ordered (or acts at own accord) to heal at a medical vehicle and the event handler returns [[true]], the healing is canceled but AI will try again and again and again. The event handler in this case will fire every second until AI unit is healed by other means.}}
+
+'''NOTE''': This Event Handler was broken before {{arma3}} v2.18.
+
+<sqf>
+this addEventHandler ["HandleHeal", {
+	_this spawn {
+		params ["_injured", "_healer", "_isMedic", "_atVehicle", "_action"];
+		private _damage = damage _injured;
+		if (_injured == _healer) then
+		{
+			waitUntil { damage _injured != _damage };
+			if (damage _injured < _damage) then
+			{
+				_injured setDamage 0;
+			};
+		};
+	};
+}];
+</sqf>
+
+<sqf>
+this addEventHandler ["HandleHeal", {
+	params ["_injured", "_healer", "_isMedic", "_atVehicle", "_action"];
+}];
+</sqf>
+
+* injured: [[Object]] - unit EH is attached to
+* healer: [[Object]] - unit that does the healing (could be the same unit as 'injured')
+* isMedic: [[Boolean]] - true when healer is 'Medic'
+* {{GVI|arma3|2.18}} atVehicle: [[Object]] - when healing at medical vehicle, this is the vehicle
+* {{GVI|arma3|2.18}} action: [[String]] - the action that triggered the event handler, for example "SoldierHealSelf"
+
+=== HandleIdentity ===
+
+{{Icon|globalArgument|32}}<br>
+Triggered whenever an entity is created. Can be used in scripts if EH is added immediately after unit is created in [[Scheduler#Unscheduled Environment|unscheduled environment]].
+Doesn't trigger for editor placed units. Does not work in Multiplayer. If EH scope returns [[true]], the default engine identity application is overridden.
+
+<sqf>
+bob = group player createUnit [typeOf player, position player, [], 0, "NONE"];
+bob addEventHandler ["HandleIdentity", {
+	params ["_unit"];
+	hint str _unit;
+}];
+</sqf>
+
+* unit: [[Object]] - object the event handler is assigned to
+
+{{ArgTitle|3|HandleRating|{{GVI|arma3|1.32}}}}
+
+{{Icon|localArgument|32}}<br>
+Triggered when engine adds rating to overall rating of the unit, usually after a kill or a friendly kill.
+If EH code returns [[Number]], this will override default engine behaviour and the resulting value added will be the one returned by EH code.
+
+<sqf>
+this addEventHandler ["HandleRating", {
+	params ["_unit", "_rating"];
+}];
+</sqf>
+
+* unit: [[Object]] - object the event handler is assigned to
+* rating: [[Number]] - rating to be added
+
+{{ArgTitle|3|HandleScore|{{GVI|arma3|1.32}}}}
+
+{{Icon|globalArgument|32}}{{Icon|serverExec|32}}<br>
+Triggered when engine adds score to overall score of the unit, usually after a kill.
+If the EH code returns [[Nothing]] or [[true]], the default engine scoreboard update (score, vehicle kills, infantry kills, etc) is applied, if it returns [[false]], the engine update is cancelled. To add or modify score, use [[addScore]] and [[addScoreSide]] commands.
+For remote units like players, the event does not persist after respawn, and must be re-added to the new unit.<br>
+'''Note:''' MP only.
+
+<sqf>
+this addEventHandler ["HandleScore", {
+	params ["_unit", "_object", "_score"];
+}];
+</sqf>
+
+* unit: [[Object]] - object the event handler is assigned to
+* object: [[Object]] - object for which score was awarded
+* score: [[Number]] - score to be added
+
+=== Hit ===
+
+{{Icon|localArgument|32}}<br>
+Triggered when the unit is hit/damaged.
+
+Is ''not'' always triggered when unit is killed by a hit.<br>
+Most of the time only the [[#Killed|killed]] event handler is triggered when a unit dies from a hit.<br>
+The hit EH will not necessarily fire if only minor damage occurred (e.g. firing a bullet at a tank), even though the damage increased.<br>
+Does not fire when a unit is set to allowDamage false.
+
+<sqf>
+this addEventHandler ["Hit", {
+	params ["_unit", "_source", "_damage", "_instigator"];
+}];
+</sqf>
+
+* unit: [[Object]] - object the event handler is assigned to
+* source: [[Object]] - object that caused the damage – contains ''unit'' in case of collisions
+* damage: [[Number]] - level of damage caused by the hit
+* {{GVI|arma3|1.66}} instigator: [[Object]] - person who pulled the trigger
+
+=== HitPart (Entity) ===
+
+{{Icon|globalArgument|32}}<br>
+Triggered when the object it was added to gets damaged.
+It returns the position and component that was hit on the object within a nested array, this is because the model may have more than one selection name for the hit component (i.e. a single piece of geometry can be simultaneously part of multiple, overlapping named selections).
+
+While you can add "HitPart" handler to a remote unit, the respective [[addEventHandler]] command must be executed on the shooter's PC and will only fire on shooter's PC as well.
+The event will not fire if the shooter is not local, even if the target itself is local.
+Additionally, if the unit gets damaged by any means other than ammunition or explosions, such as fall damage and burning, "HitPart" will not fire.
+Because of this, this event handler is most suitable for when the shooter needs feedback on his shooting, such as target practicing or hitmarker creation.
+
+This EH returns an array of arrays. Each sub-array contains data for the part that was hit as usually multiple parts are hit at the same time (see [[HitPart Sample]]). The structure of the sub-arrays is listed below.
+
+<sqf>
+this addEventHandler ["HitPart", {
+	{
+		_x params [
+			"_target", "_shooter", "_projectile", "_position", "_velocity",
+			"_selection", "_ammo", "_vector", "_radius", "_surfaceType",
+			"_isDirect", "_instigator"
+		];
+	} forEach _this;
+}];
+</sqf>
+
+* target: [[Object]] - object that was damaged
+* shooter: [[Object]] - Unit or vehicle that inflicted the damage. If injured by a vehicle collision, the target itself is returned, or [[objNull]] in case of explosions. In case of explosives that were planted by someone (e.g. satchel charges), that unit is returned.
+* projectile: [[Object]] - object that was fired
+* position: [[Array]] format [[Position#PositionASL|PositionASL]] - position the bullet impacted
+* velocity: [[Vector3D]] - 3D speed at which the bullet impacted
+* selection: [[Array]] - array of [[String]]s with named selection of the object that were hit, in the FireGeometry LOD
+* ammo:
+** [[Array]] in format [hitValue, indirectHitValue, indirectHitRange, explosiveDamage, ammoClassName] - If the damage was directly or indirectly inflicted by a projectile. Hit and damage values are derived from the projectile's [[CfgAmmo Config Reference|CfgAmmo]] class, and do not match the actual damage inflicted, which is usually lower due to armor and other factors.
+** [[Array]] in format [impulseValue, 0, 0, 0] - if the damage was inflicted by a vehicle collision
+* vector: [[Vector3D]] - Vector that is orthogonal (perpendicular) to the surface struck. For example, if a wall was hit, the vector would be pointing out of the wall at a 90 degree angle.
+* radius: [[Number]] - radius (size) of component hit
+* surfaceType: [[String]] - surface type struck
+* isDirect: [[Boolean]] - [[true]] if object was directly hit, [[false]] if it was hit by indirect / splash damage
+* {{GVI|arma3|2.18}} instigator: [[Object]] - shot instigator
+
+{{Feature|informative|See {{Link|#HitPart (Projectile)}} for a similar event handler that is attached to the projectile instead of the entity.}}
+{{Feature|informative|This event does not fire when miniscule explosive damage is dealt to the target entity, but the [[#Explosion|Explosion]] event will still fire.}}
+
+=== IncomingMissile ===
+
+{{Icon|globalArgument|32}}<br>
+Triggered when a unit fires a missile or rocket at the target. For projectiles fired by players this EH only triggers for guided missiles that have locked onto the target.
+
+<sqf>
+this addEventHandler ["IncomingMissile", {
+	params ["_target", "_ammo", "_vehicle", "_instigator", "_missile"];
+}];
+</sqf>
+
+* target: [[Object]] - object the event handler is assigned to
+* ammo: [[String]] - ammo type that was fired on the target
+* {{GVI|arma3|1.42}} vehicle: [[Object]] - vehicle that fired the weapon. In case of soldier, unit is returned
+* {{GVI|arma3|1.66}} instigator: [[Object]] - person who pulled the trigger
+* {{GVI|arma3|2.10}} missile: [[Object]] - the incoming missile
+
+=== Init (Entity) ===
+
+{{Icon|globalArgument|32}}<br>
+Triggered whenever an entity is created. Cannot be used in scripts, only inside class Eventhandlers in config.
+{{Feature|important|It is recommended to use the {{Link|#PostInit}} event handler instead of this one when setting entity textures ([[setObjectTexture]], [[BIS_fnc_initVehicle]] etc) to avoid networking issues.}}
+
+e.g:
+<syntaxhighlight lang="cpp">init = "params ['_entity'];";</syntaxhighlight>
+<sqf>params ["_entity"];</sqf>
+
+* entity: [[Object]] - object the event handler is assigned to
+
+{{ArgTitle|3|InventoryClosed|{{GVI|arma3|1.22}}}}
+
+{{Icon|globalArgument|32}}<br>
+Triggered when the unit closes inventory. Said unit can be non-local when adding the EH, but '''must''' be local for the EH to trigger.
+
+<sqf>
+this addEventHandler ["InventoryClosed", {
+	params ["_unit", "_container"];
+}];
+</sqf>
+
+* unit: [[Object]] - object the event handler is assigned to
+* container: [[Object]] - connected container or weaponholder
+
+<sqf>
+// Delete dropped items when inventory closed
+player addEventHandler ["InventoryClosed", {
+	params ["_unit", "_container"];
+	if (_container isKindOf "WeaponHolder") then
+	{
+		deleteVehicle _container;
+	};
+}];
+</sqf>
+
+{{ArgTitle|3|InventoryOpened|{{GVI|arma3|1.22}}}}
+
+{{Icon|globalArgument|32}}<br>
+Triggered when unit opens inventory. Said unit can be non-local when adding the EH, but '''must''' be local for the EH to trigger. End EH main scope with [[true]] to override the opening of the inventory in case you wish to handle it yourself:
+
+<sqf>
+// Create and open an ammo box when "Inventory" button is pressed
+player addEventHandler ["InventoryOpened", {
+	player removeAllEventHandlers "InventoryOpened";
+	_box = "Box_NATO_Ammo_F" createVehicle [0,0,0];
+	_box setPosASL (player modelToWorldVisualWorld [0,1.5,0.5]);
+	player action ["Gear", _box];
+	true; // <-- inventory override
+}];
+</sqf>
+
+To return all nearby containers use [[nearSupplies]] command.
+
+<sqf>
+this addEventHandler ["InventoryOpened", {
+	params ["_unit", "_primaryContainer", "_secondaryContainer"];
+}];
+</sqf>
+
+* unit: [[Object]] - object the event handler is assigned to
+* primaryContainer: [[Object]] - connected container or weaponholder
+* {{GVI|arma3|1.66}} secondaryContainer: [[Object]] - second connected container or weaponholder or [[objNull]]
+
+=== Killed ===
+
+{{Icon|localArgument|32}}<br>
+Triggered when the unit is killed.
+
+<sqf>
+this addEventHandler ["Killed", {
+	params ["_unit", "_killer", "_instigator", "_useEffects", "_shot", "_real"];
+}];
+</sqf>
+
+* unit: [[Object]] - the object the event handler is assigned to
+* killer: [[Object]] - the object that killed the unit. Contains the unit itself in case of collisions.
+* {{GVI|arma3|1.66}} instigator: [[Object]] - the person who pulled the trigger
+* {{GVI|arma3|1.68}} useEffects: [[Boolean]] - same as ''useEffects'' in [[setDamage]] alt syntax
+* {{GVI|arma3|2.22}} shot: [[Object]] - shot that caused damage
+* {{GVI|arma3|2.22}} real: [[Boolean]] - [[true]] when the shot was 'real' where the event handler triggered
+=== LandedStopped ===
+
+{{Icon|globalArgument|32}}<br>
+Triggered when an AI pilot would get out usually. Not executed for player.
+
+<sqf>
+this addEventHandler ["LandedStopped", {
+	params ["_plane", "_airportID", "_airportObject"];
+}];
+</sqf>
+
+* plane: [[Object]] - object the event handler is assigned to
+* airportID: [[Number]] - ID of the airport (-1 for anything else)
+* {{GVI|arma3|2.12}} airportObject: [[Object]] - airport object in the event of a [[Arma 3: Dynamic Airport Configuration|Dynamic Airport]], otherwise [[objNull]]
+
+=== LandedTouchDown ===
+
+{{Icon|globalArgument|32}}<br>
+Triggered when a plane (AI or player) touches the ground.
+
+<sqf>
+this addEventHandler ["LandedTouchDown", {
+	params ["_plane", "_airportID", "_airportObject"];
+}];
+</sqf>
+
+* plane: [[Object]] - object the event handler is assigned to
+* airportID: [[Number]] - ID of the airport (-1 for anything else)
+* {{GVI|arma3|2.12}} airportObject: [[Object]] - airport object in the event of a [[Arma 3: Dynamic Airport Configuration|Dynamic Airport]], otherwise [[objNull]]
+
+{{ArgTitle|3|Landing|{{GVI|arma3|1.70}}}}
+
+{{Icon|globalArgument|32}}<br>
+Triggered when an AI pilot (or auto-pilot) is preparing for landing. The exact moment of triggering coincides with lowering of the gear ("Gear" EH)
+
+<sqf>
+this addEventHandler ["Landing", {
+	params ["_plane", "_airportID", "_isCarrier"];
+}];
+</sqf>
+
+* plane: [[Object]] - object the event handler is assigned to
+* airportID: [[Number]] or [[Object]] - ID of the airport or aircraft carrier object
+* isCarrier: [[Boolean]] - true if landing on aircraft carrier
+
+{{ArgTitle|3|LandingCanceled|{{GVI|arma3|1.70}}}}
+
+{{Icon|globalArgument|32}}<br>
+Triggered when AI pilot landing is cancelled (for example new order received to land elsewhere).
+The exact moment of triggering coincides with retracting of the gear ("Gear" EH).<br>
+'''Note''': Does not trigger if player switches off auto-pilot. Canceled is spelled with one {{hl|L}}
+
+<sqf>
+this addEventHandler ["LandingCanceled", {
+	params ["_plane", "_airportID", "_isCarrier"];
+}];
+</sqf>
+
+* plane: [[Object]] - object the event handler is assigned to
+* airportID: [[Number]] or [[Object]] - ID of the airport or aircraft carrier object (-1 no airport)
+* isCarrier: [[Boolean]] - [[true]] if landing on aircraft carrier
+
+{{ArgTitle|3|LaserTargetChanged|{{GVI|arma3|2.22}}}}
+
+Triggered when the laser target changes.
+
+<sqf>
+this addEventHandler ["LaserTargetChanged", {
+	params ["_unit", "_laserTarget", "_designatedTarget", "_turretPath"];
+}];
+</sqf>
+
+* unit: [[Object]] - object the event handler is assigned to
+* laserTarget: [[Object]] - the laser target entity that got created at impact point
+* designatedTarget: [[Object]] - the object that is targeted by the laser
+* turretPath: [[Turret Path]] - the path to the turret that activated the laser. It is empty when the event is triggered by a unit
+
+{{ArgTitle|3|LeaningChanged|{{GVI|arma3|2.18}}}}
+
+{{Icon|globalArgument|32}}<br>
+Triggered when a soldier leaning factor is changed between -1 (extreme left), 0 (not leaning) and 1 (extreme right)
+
+<sqf>
+this addEventHandler ["LeaningChanged", {
+	params ["_unit", "_newLeaning", "_oldLeaning"];
+}];
+</sqf>
+
+* unit: [[Object]] - soldier
+* newLeaning: [[Number]] from -1 to 1
+* oldLeaning: [[Number]] from -1 to 1
+
+=== Local (Entity) ===
+
+{{Icon|globalArgument|32}}<br>
+Triggers when locality of object in MP is changed. The event handler only triggers on the computers that are directly involved in change of locality.
+So if EH is added to every computer on network, it will only trigger on 2 computers, on the computer that receives ownership of the object (new owner), in which case [[Magic Variables#this|_this]] [[select]] 1 will be [[true]],
+and on the computer from which ownership is transferred (old owner), in which case [[Magic Variables#this|_this]] [[select]] 1 will be [[false]].
+
+<sqf>
+this addEventHandler ["Local", {
+	params ["_entity", "_isLocal"];
+}];
+</sqf>
+
+* entity: [[Object]] - the object that changed locality
+* isLocal: [[Boolean]] - if the object is local on given computer
+
+{{ArgTitle|3|MagazineReloading|{{GVI|arma3|2.18}}}}
+
+{{Icon|localArgument|32}}<br>
+Triggers when reloading starts.
+
+<sqf>
+this addEventHandler ["MagazineReloading", {
+	params ["_unit", "_weapon", "_muzzle", "_magazine", "_magazineClass", "_ammoCount", "_magazineID", "_magazineCreator"];
+}];
+</sqf>
+
+* unit: [[Object]] - unit or vehicle to which EH is assigned
+* weapon: [[String]] - weapon that got unloaded
+* muzzle: [[String]] - weapon's muzzle that got unloaded
+* magazine: [[Array]] - magazine info in format [magazineClass, ammoCount, magazineID, magazineCreator], where:
+** magazineClass: [[String]] - class name of the magazine
+** ammoCount: [[Number]] - amount of ammo in magazine
+** magazineID: [[Number]] - global magazine id
+** magazineCreator: [[Number]] - owner of the magazine creator
+
+{{ArgTitle|3|MagazineUnloaded|{{GVI|arma3|2.18}}}}
+
+{{Icon|localArgument|32}}<br>
+Triggers when a magazine is removed from a weapon manually or via script.
+
+<sqf>
+this addEventHandler ["MagazineUnloaded", {
+	params ["_unit", "_weapon", "_muzzle", "_magazine", "_magazineClass", "_ammoCount", "_magazineID", "_magazineCreator"];
+}];
+</sqf>
+
+* unit: [[Object]] - unit or vehicle to which EH is assigned
+* weapon: [[String]] - weapon that got unloaded
+* muzzle: [[String]] - weapon's muzzle that got unloaded
+* magazine: [[Array]] - magazine info in format [magazineClass, ammoCount, magazineID, magazineCreator], where:
+** magazineClass: [[String]] - class name of the magazine
+** ammoCount: [[Number]] - amount of ammo in magazine
+** magazineID: [[Number]] - global magazine id
+** magazineCreator: [[Number]] - owner of the magazine creator
+
+{{ArgTitle|3|OpticsModeChanged|{{GVI|arma3|2.10}}}}
+
+{{Icon|localArgument|32}}<br>
+Triggers everytime a local unit changes optic mode. This could be either through the [[setOpticsMode]] command or by the player switching to the next optic mode using e.g {{Controls|NUM /}} or {{Controls|Ctrl|RMB}}.
+
+<sqf>
+this addEventHandler ["OpticsModeChanged", {
+	params ["_unit", "_opticsClass", "_newMode", "_oldMode", "_isADS"];
+}];
+</sqf>
+
+* unit: [[Object]] - the unit
+* opticsClass: [[String]]
+* newMode: [[String]]
+* oldMode: [[String]]
+* isADS: [[Boolean]] - if the new view is GUNNER
+
+{{ArgTitle|3|OpticsSwitch|{{GVI|arma3|2.10}}}}
+
+{{Icon|localArgument|32}}<br>
+Triggers at the start of the camera transition from GUNNER to INTERNAL/EXTERNAL and vice-versa.
+So anytime the right mouse button is pressed and there is a GUNNER view available or are currently in it, this triggers.
+Works in vehicles and FFV as well. See also [[cameraView]].
+
+<sqf>
+this addEventHandler ["OpticsSwitch", {
+	params ["_unit", "_isADS"];
+}];
+</sqf>
+
+* unit: [[Object]] - the unit
+* isADS: [[Boolean]] - if the new view is GUNNER
+
+{{ArgTitle|3|PathCalculated|{{GVI|arma3|1.94}}}}
+
+{{Icon|localArgument|32}}<br>
+Triggers when a path has been calculated for the unit. Works for both agents and normal AI units. <br>
+Note that paths to far destinations are typically calculated in segments.
+When the unit completes a segment, a new path is calculated and this is continued until the unit reaches its destination.
+
+<sqf>
+this addEventHandler ["PathCalculated", {
+	params ["_unit", "_path"];
+}];
+</sqf>
+
+* unit: [[Object]] - the unit/agent for which the path was calculated
+* path: [[Array]] - the array of positions representing the path (PositionASL)
+
+{{ArgTitle|3|PeriscopeElevationChanged|{{GVI|arma3|2.00}}}}
+
+Fires every frame during periscope elevation animation.
+
+<sqf>
+this addEventHandler ["PeriscopeElevationChanged", {
+	params ["_vehicle", "_turret", "_elevation", "_direction", "_userIsBlocked"];
+}];
+</sqf>
+
+* vehicle: [[Object]] - the vehicle this EH is assigned to
+* turret: [[Array]] - the turret which periscope is changing elevation
+* elevation: [[Number]] - current periscope elevation (changes with each simulation). See also [[periscopeElevation]], [[elevatePeriscope]]
+* direction: [[Number]] - 1: moves up, 0: stopped, -1: moves down; when {{hl|direction}} returns 0, this also means the event handler fired for the last time for this elevation.
+* userIsBlocked: [[Boolean]] - whether or not the user ability to override is blocked. See also [[periscopeElevation]], [[elevatePeriscope]]
+
+{{ArgTitle|3|PostInit|{{GVI|arma3|2.06}}}}
+
+{{Icon|globalArgument|32}}<br>
+Triggered whenever an entity is created and initialized. Cannot be used in scripts, only inside class Eventhandlers in config.
+{{Feature|important|It is recommended to use this event handler instead of the {{Link|#Init}} one when setting entity textures ([[setObjectTexture]], [[BIS_fnc_initVehicle]] etc) to avoid networking issues.}}
+
+e.g:
+<syntaxhighlight lang="cpp">postInit = "params ['_entity'];";</syntaxhighlight>
+<syntaxhighlight lang="cpp">postinit = "params ['_entity']; if (local _entity) then { [_entity, '', [], false] call BIS_fnc_initVehicle };";</syntaxhighlight>
+<sqf>params ["_entity"];</sqf>
+
+* entity: [[Object]] - object the event handler is assigned to
+
+=== PostReset ===
+
+'''Obsolete''' - triggers after PP effects have been reset by the engine.
+
+{{ArgTitle|3|Put|{{GVI|arma3|0.56}}}}
+
+{{Icon|globalArgument|32}}<br>
+Triggers when a unit puts an item in a container.
+
+{{GVI|arma3|2.14|size= 0.75}} This event handler can be added to a container.
+
+<sqf>
+this addEventHandler ["Put", {
+	params ["_unit", "_container", "_item"];
+}];
+</sqf>
+
+* unit: [[Object]] - unit who put the item in the container
+* container: [[Object]] - the container into which the item was placed (vehicle, box, etc.)
+* item: [[String]] - the class name of the moved item
+
+{{Feature|informative|This EH could also trigger when unit replaces magazine in weapon with another magazine from unit containers (uniform, vest, backpack) during reload.}}
+
+{{ArgTitle|3|PylonChanged|{{GVI|arma3|2.20}}}}
+
+{{Icon|localArgument|32}}<br>
+Triggers when an aircraft's pylon changes magazine type:
+
+<sqf>
+vehicle player addEventHandler ["PylonChanged", {
+	params ["_vehicle", "_pylonIndex", "_oldMagazine", "_newMagazine"];
+}];
+</sqf>
+
+* vehicle: [[Object]]
+* pylonIndex: [[Number]]
+* oldMagazine: [[String]]
+* newMagazine: [[String]]
+
+{{Feature|important|
+This event generally triggers '''twice''' for a swap, first unload then load, e.g:
+<sqf>
+// [myVehicle, 1, "oldMagClass", ""]
+// [myVehicle, 1, "", "newMagClass"]
+</sqf>
+}}
+
+{{ArgTitle|3|Reloaded|{{GVI|arma3|1.58}}}}
+
+{{Icon|localArgument|32}}<br>
+Triggers once a weapon is reloaded with a new magazine. For more information, see [[Arma 3: Event Handlers/Reloaded|Reloaded]].
+
+<sqf>
+this addEventHandler ["Reloaded", {
+	params ["_unit", "_weapon", "_muzzle", "_newMagazine", "_oldMagazine"];
+}];
+</sqf>
+
+* unit: [[Object]] - unit or vehicle to which EH is assigned
+* weapon: [[String]] - weapon that got reloaded
+* muzzle: [[String]] - weapon's muzzle that got reloaded
+* newMagazine: [[Array]] - new magazine info
+* oldMagazine: [[Array]] or [[Nothing]] - old magazine info
+
+=== Respawn ===
+
+{{Icon|localArgument|32}}<br>
+Triggered when a unit respawns.
+
+<sqf>
+this addEventHandler ["Respawn", {
+	params ["_unit", "_corpse"];
+}];
+</sqf>
+
+* unit: [[Object]] - object the event handler is assigned to
+* corpse: [[Object]] - object the event handler was assigned to, aka the corpse/unit player was previously controlling
+
+{{ArgTitle|3|RopeAttach|{{GVI|arma3|1.34}}}}
+
+Triggered when a rope is attached to an object.<br>
+In the case of sling loading, this event handler must be assigned to the helicopter and will trigger for each attached rope.
+
+<sqf>
+this addEventHandler ["RopeAttach", {
+	params ["_object1", "_rope", "_object2"];
+}];
+</sqf>
+
+* object1: [[Object]] - object to which the event handler is assigned.
+* rope: [[Object]] - the rope being attached between object 1 and object 2.
+* object2: [[Object]] - the object that is being attached to object 1 via rope.
+
+{{ArgTitle|3|RopeBreak|{{GVI|arma3|1.34}}}}
+
+Triggered when a rope is detached from an object.<br>
+In the case of sling loading, this event handler must be assigned to the helicopter and will trigger for each detached rope.
+
+<sqf>
+this addEventHandler ["RopeBreak", {
+	params ["_object1", "_rope", "_object2"];
+}];
+</sqf>
+
+* object1: [[Object]] - object to which the event handler is assigned.
+* rope: [[Object]] - the rope that connected object 1 and object 2.
+* object2: [[Object]] - the object that was connected to object 1 with a rope.
+
+{{ArgTitle|3|SeatSwitched|{{GVI|arma3|1.50}}}}
+
+{{Icon|globalArgument|32}}<br>
+Triggered when unit changes seat within vehicle. EH returns both units switching seats.
+If switching seats with an empty seat, one of the returned units will be [[objNull]].
+The new position can be obtained with [[assignedVehicleRole]].
+This EH must be assigned to a vehicle.
+
+<sqf>
+this addEventHandler ["SeatSwitched", {
+	params ["_vehicle", "_unit1", "_unit2"];
+}];
+</sqf>
+
+* vehicle: [[Object]] - vehicle to which the event handler is assigned.
+* unit1: [[Object]] - unit switching seat.
+* unit2: [[Object]] - unit switching seat.
+
+{{ArgTitle|3|SeatSwitchedMan|{{GVI|arma3|1.58}}}}
+
+{{Icon|globalArgument|32}}<br>
+Triggered when unit changes seat within vehicle. EH returns both units switching seats.
+If switching seats with an empty seat, one of the returned units will be [[objNull]].
+The new position can be obtained with [[assignedVehicleRole]] <unit>. This EH must be assigned to a unit and not a vehicle.
+This EH is persistent and will be transferred to the new unit after respawn, but only if it was assigned where unit was local.
+
+<sqf>
+this addEventHandler ["SeatSwitchedMan", {
+	params ["_unit1", "_unit2", "_vehicle"];
+}];
+</sqf>
+
+* unit1: [[Object]] - unit switching seat.
+* unit2: [[Object]] - unit with which unit1 is switching seat.
+* vehicle: [[Object]] - vehicle where switching seats is taking place.
+
+=== SelectedActionChanged ===
+
+RTM helicopter user action event
+
+<sqf>
+this addEventHandler ["SelectedActionChanged", {
+	params ["_caller", "_target", "_enumNumber", "_actionId"];
+}];
+</sqf>
+
+{{Feature|important|Limited or non-existent functionality.}}
+
+=== SelectedActionPerformed ===
+
+RTM helicopter user action event
+
+<sqf>
+this addEventHandler ["SelectedActionPerformed", {
+	params ["_caller", "_target", "_enumNumber", "_actionId"];
+}];
+</sqf>
+
+{{Feature|important|Limited or non-existent functionality.}}
+
+=== SelectedRotorLibActionChanged ===
+
+RTM helicopter user action event
+
+<sqf>
+this addEventHandler ["SelectedRotorLibActionChanged", {
+	params ["_caller", "_target", "_enumNumber", "_actionId"];
+}];
+</sqf>
+
+{{Feature|important|Limited or non-existent functionality.}}
+
+=== SelectedRotorLibActionPerformed ===
+
+RTM helicopter user action event
+
+<sqf>
+this addEventHandler ["SelectedRotorLibActionPerformed", {
+	params ["_caller", "_target", "_enumNumber", "_actionId"];
+}];
+</sqf>
+
+{{Feature|important|
+Works only for key press combination {{Controls|RCtrl|W}}, which is the binding for helicopter wheels brakes.
+It fires with or without Advanced Flight Model enabled. The enum number returned is 4 and 5, probably because the enum is structured like this:
+* 0: HelicopterAutoTrimOn
+* 1: HelicopterAutoTrimOff
+* 2: HelicopterTrimOn
+* 3: HelicopterTrimOff
+* 4: WheelsBrakeOn
+* 5: WheelsBrakeOff
+}}
+
+{{ArgTitle|3|SlotItemChanged|{{GVI|arma3|2.14}}}}
+
+{{Icon|globalArgument|32}}<br>
+Triggered when any of the following slots get assigned or unassigned: ''Items'' - Map, GPS, Radio, Watch, Compass, Helmet, Goggles, NVG; ''Weapon'' - Binoculars; ''Containers'' - Uniform, Vest, Backpack.
+
+<sqf>
+this addEventHandler ["SlotItemChanged", {
+	params ["_unit", "_name", "_slot", "_assigned", "_weapon"];
+}];
+</sqf>
+
+* unit: [[Object]] - unit EH assigned to.
+* name: [[String]] - name of the item/weapon/container (see [[getSlotItemName]]).
+* slot: [[Number]] - slot id (see [[getSlotItemName]]).
+* assigned: [[Boolean]] - [[true]] assign action, [[false]] unassign action.
+* {{GVI|arma3|2.18}} weapon: [[String]] - name of weapon in event that slot changed is a weapon attachment slot
+
+{{ArgTitle|3|SoundPlayed|{{GVI|arma3|0.56}}}}
+
+{{Icon|localArgument|32}}<br>
+Triggered when player is making noises when injured or fatigued for example. The number param passed to the EH code points to the sound origin:
+{{Columns|3|
+# Breath
+# Breath Injured
+# Breath Scuba
+# Injured
+# Pulsation
+# Hit Scream
+# Burning
+# Drowning
+# Drown
+# Gasping
+# Stabilizing
+# Healing
+# Healing With Medikit
+# Recovered
+# Breath Held
+}}
+
+<sqf>
+this addEventHandler ["SoundPlayed", {
+	params ["_unit", "_soundID"];
+}];
+</sqf>
+
+* unit: [[Object]] - unit to which the event handler is assigned
+* soundID: [[Number]] - sound origin
+
+{{Feature|informative|Since {{GVI|arma3|2.12}} returning a [[Number]] from last added EH in range from 0 to 5 will alter the volume of played sound from mute to max volume.}}
+
+{{ArgTitle|3|Suppressed|{{GVI|arma3|2.02}}}}
+
+{{Icon|localArgument|32}}<br>
+Triggers when enemy projectile is passing by closer than defined suppression radius ammo value in config.
+Can be made to trigger for the same side if the side is set as enemy to itself (with [[setFriend]]). For more information see {{Link|Arma 3: Suppression}}.
+
+<sqf>
+this addEventHandler ["Suppressed", {
+	params ["_unit", "_distance", "_shooter", "_instigator", "_ammoObject", "_ammoClassName", "_ammoConfig"];
+}];
+</sqf>
+
+* unit: [[Object]] - unit to which the event is assigned
+* distance: [[Number]] - distance of the projectile pass-by
+* shooter: [[Object]] - who (or what) fired - vehicle or drone
+* instigator: [[Object]] - who pressed the trigger. Instigator is different from the shooter when player is operator of UAV for example
+* ammoObject: [[Object]] - the ammunition itself
+* ammoClassName: [[String]] - the ammunition's classname
+* ammoConfig: [[Config]] - the ammunition's [[CfgAmmo Config Reference|CfgAmmo]] config path
+
+{{ArgTitle|3|Take|{{GVI|arma3|0.56}}}}
+
+{{Icon|globalArgument|32}}<br>
+Triggers when a unit takes an item from a container.
+
+{{GVI|arma3|2.14|size= 0.75}} This event handler can be added to a container.
+
+<sqf>
+this addEventHandler ["Take", {
+	params ["_unit", "_container", "_item"];
+}];
+</sqf>
+
+* unit: [[Object]] - unit who took the item from the container
+* container: [[Object]] - the container from which the item was taken (vehicle, box, etc.)
+* item: [[String]] - the class name of the taken item
+
+{{Feature|informative|This EH could also trigger when unit replaces magazine in weapon with another magazine from unit containers (uniform, vest, backpack) during reload.}}
+
+{{ArgTitle|3|TaskSetAsCurrent|{{GVI|arma3|1.32}}}}
+
+Triggers when player's current task changes
+
+<sqf>
+this addEventHandler ["TaskSetAsCurrent", {
+	params ["_unit", "_task"];
+}];
+</sqf>
+
+* unit: [[Object]] - the player to whom the event handler is assigned
+* task: [[Task]] - the new current task
+
+{{ArgTitle|3|TurnIn|{{GVI|arma3|1.66}}}}
+
+Triggers when member of crew in a vehicle uses Turn In [[action]]
+
+<sqf>
+this addEventHandler ["TurnIn", {
+	params ["_vehicle", "_unit", "_turret"];
+}];
+</sqf>
+
+* vehicle: [[Object]] - the vehicle the event handler is assigned to
+* unit: [[Object]] - the unit performing the Turn In action
+* turret: [[Array]] - turret path
+
+{{ArgTitle|3|TurnOut|{{GVI|arma3|1.66}}}}
+
+Triggers when member of crew in a vehicle uses Turn Out [[action]]
+
+<sqf>
+this addEventHandler ["TurnOut", {
+	params ["_vehicle", "_unit", "_turret"];
+}];
+</sqf>
+
+* vehicle: [[Object]] - the vehicle the event handler is assigned to
+* unit: [[Object]] - the unit performing the Turn Out action
+* turret: [[Array]] - turret path
+
+{{ArgTitle|3|VisionModeChanged|{{GVI|arma3|2.08}}}}
+
+Triggers when the assigned vehicle/unit's vision mode has changed.
+
+<sqf>
+player addEventHandler ["VisionModeChanged", {
+	params ["_person", "_visionMode", "_TIindex", "_visionModePrev", "_TIindexPrev", "_vehicle", "_turret"];
+}];
+</sqf>
+
+* person: [[Object]] - unit for whom the vision mode changes
+* visionMode: [[Number]] - [[currentVisionMode|vision mode index]]
+* TIindex: [[Number]] - [[setCamUseTI|thermal vision mode index]]; will return -1 when ''visionMode'' is not 2
+* visionModePrev: [[Number]] - last vision mode
+* TIindexPrev: [[Number]] - last TI mode; will return -1 when ''visionModePrev'' is not 2
+* vehicle: [[Object]] - if unit is in a vehicle or controlling a UAV, this will be the vehicle
+* turret: [[Array]] - turret path to the turret occupied by the unit, or [] if not on turret
+
+=== WeaponAssembled ===
+
+{{Icon|globalArgument|32}}<br>
+Triggers when a weapon gets assembled. EH must be attached to the unit and not the weapon.
+
+<sqf>
+this addEventHandler ["WeaponAssembled", {
+	params ["_unit", "_weapon", "_primaryBag", "_secondaryBag"];
+}];
+</sqf>
+
+* unit: [[Object]] - object the event handler is assigned to
+* weapon: [[Object]] - object of the assembled weapon
+* {{GVI|arma3|2.18}} primaryBag: [[Object]] - primary bag (just before it is deleted)
+* {{GVI|arma3|2.18}} secondaryBag: [[Object]] - secondary bag (just before it is deleted)
+
+{{ArgTitle|3|WeaponChanged|{{GVI|arma3|2.18}}}}
+
+Fires on weapon switch and firemode switch. Does not fire for player units inside vehicles (but does fire for vehicles with players in them).<br>
+The locality is unknown, but it is known that this EH behaves like [[currentWeapon]], [[currentWeaponMode]] and [[currentMuzzle]] in terms of locality.<br>
+{{GVI|arma3|2.22}} Fires for "Throw" muzzle changes too.
+
+<sqf>
+this addEventHandler ["WeaponChanged", {
+	params ["_object", "_oldWeapon", "_newWeapon", "_oldMode", "_newMode", "_oldMuzzle", "_newMuzzle", "_turretIndex"];
+}];
+</sqf>
+
+* object: [[Object]] - the unit or vehicle the event handler is assigned to
+* oldWeapon: [[String]] - the class name of the previous weapon
+* newWeapon: [[String]] - the class name of the new weapon (same as [[currentWeapon]])
+* oldMode: [[String]] - the previous weapon mode
+* newMode: [[String]] - the new weapon mode (same as [[currentWeaponMode]])
+* oldMuzzle: [[String]] - the previous weapon muzzle
+* newMuzzle: [[String]] - the new weapon muzzle (same as [[currentMuzzle]])
+* turretIndex: [[Array]] format [[Turret Path]] - the turret path, or empty array if <var>object</var> is not a transport vehicle
+
+{{ArgTitle|3|WeaponDeployed|{{GVI|arma3|1.44}}}}
+
+{{Icon|globalArgument|32}}<br>
+Triggers when the deployed state of a weapon or bipod changes.<br>
+'''Note:''' A weapon cannot be rested and deployed at the same time.
+
+<sqf>
+this addEventHandler ["WeaponDeployed", {
+	params ["_unit", "_isDeployed"];
+}];
+</sqf>
+
+* unit: [[Object]] - object the event handler is assigned to
+* isDeployed: [[Boolean]] - true if deployed
+
+=== WeaponDisassembled ===
+
+{{Icon|globalArgument|32}}<br>
+Triggers when a weapon gets disassembled. EH must be attached to the unit and not the weapon.<br>
+'''Note:''' As of {{arma3}} v1.32, this event does not fire if the weapon is not local.
+
+<sqf>
+this addEventHandler ["WeaponDisassembled", {
+	params ["_unit", "_primaryBag", "_secondaryBag", "_weapon"];
+}];
+</sqf>
+
+* unit: [[Object]] - object the event handler is assigned to
+* primaryBag: [[Object]] - first backpack object which was weapon disassembled into
+* secondaryBag: [[Object]] - second backpack object which was weapon disassembled into
+* {{GVI|arma3|2.18}} weapon: [[Object]] - disassembled weapon (just before it is moved out of the world)
+
+{{ArgTitle|3|WeaponRested|{{GVI|arma3|1.44}}}}
+
+{{Icon|localArgument|32}}<br>
+Triggers when weapon rested state changes (weapon near a surface that can provide weapon support).<br>
+'''Note:''' A weapon cannot be rested and deployed at the same time.
+
+<sqf>
+this addEventHandler ["WeaponRested", {
+	params ["_unit", "_isRested"];
+}];
+</sqf>
+
+* unit: [[Object]] - object the event handler is assigned to
+* isRested: [[Boolean]] - true if rested
+
+
+== Multiplayer Event Handlers ==
+
+Global object event handler, executed on every connected machine.
+
+Commands:
+* [[addMPEventHandler]]
+* [[removeMPEventHandler]]
+* [[removeAllMPEventHandlers]]
+
+{{Feature|important|A Multiplayer Event Handler is '''not''' saved in a save file and therefore will not be restored on load - use it accordingly.}}
+
+=== MPHit ===
+
+{{Icon|globalArgument|32}}{{Icon|globalEffect|32}}<br>
+Triggered when the unit is hit/damaged. EH can be added on any machine and EH code will trigger globally on every connected client and server.
+This EH is clever enough to be triggered globally only once even if added on all clients or a single client that is then disconnected, EH will still trigger globally only once.
+
+Is ''not'' always triggered when unit is killed by a hit.
+Most of the time only the [[#Killed|killed]] event handler is triggered when a unit dies from a hit.
+The hit EH will not necessarily fire if only minor damage occurred (e.g. firing a bullet at a tank), even though the damage increased.
+Can also trigger several times for an explosion (direct and indirect damage). Does not fire when a unit is set to [[allowDamage]] [[false]].
+However it will fire with "HandleDamage" EH added alongside stopping unit from taking damage (<sqf inline>unit addEventHandler ["HandleDamage", { 0 }];</sqf>.
+Will not trigger once the unit is dead.
+
+'''Note:''' call a function from the MPHit EH code space rather than defining the full code in there directly.
+The reason is the code space will be transferred over network on each event activation - so keep the data as small as possible!
+
+<sqf>
+this addMPEventHandler ["MPHit", {
+	params ["_unit", "_causedBy", "_damage", "_instigator"];
+}];
+</sqf>
+
+* unit: [[Object]] - object the event handler is assigned to <br>
+* causedBy: [[Object]] - object that caused the damage. Contains the unit itself in case of collisions. <br>
+* damage: [[Number]] - level of damage caused by the hit
+* {{GVI|arma3|1.66}} instigator: [[Object]] - person who pulled the trigger
+
+=== MPKilled ===
+
+{{Icon|globalArgument|32}}{{Icon|globalEffect|32}}<br>
+Triggered when the unit is killed. EH can be added on any machine and EH code will trigger globally '''on every connected client and server'''.
+This EH has a safeguard measure so that even if it's added on all clients or a single client that is then disconnected, EH will still trigger globally only once per client.
+
+<sqf>
+this addMPEventHandler ["MPKilled", {
+	params ["_unit", "_killer", "_instigator", "_useEffects"];
+}];
+</sqf>
+
+* unit: [[Object]] - object the event handler is assigned to
+* killer: [[Object]] - object that killed the unit. Contains the unit itself in case of collisions
+* {{GVI|arma3|1.66}} instigator: [[Object]] - person who pulled the trigger
+* {{GVI|arma3|1.68}} useEffects: [[Boolean]] - same as ''useEffects'' in [[setDamage]] alt syntax
+
+=== MPRespawn ===
+
+{{Icon|globalArgument|32}}{{Icon|localEffect|32}}<br>
+Triggered when a unit, it is assigned to, respawns. This EH does not work as one would expect MP EH should work like.
+It is only triggered on one machine where the unit it was assigned to is [[Multiplayer Scripting#Locality|local]].
+The only difference between '''Respawn''' and '''MPRespawn''' is that '''MPRespawn''' can be assigned from anywhere while '''Respawn''' requires the unit to be local.<br><br>
+MPRespawn EH expects the EH code to return an array in [[Position]] format which will be used to place the respawned unit at the desired coordinates.<br>
+For example: <sqf inline>player addMPEventHandler ["MPRespawn", { [1234, 1234, 0] }];</sqf> will place player at [1234,1234,0] immediately on respawn.
+
+<sqf>
+this addMPEventHandler ["MPRespawn", {
+	params ["_unit", "_corpse"];
+}];
+</sqf>
+
+* unit: [[Object]] - object the event handler is assigned to
+* corpse: [[Object]] - object the event handler was assigned to, aka the corpse/unit player was previously controlling.
+
+
+== Mission Event Handlers ==
+
+Mission Event Handlers are specific EHs that are anchored to the running mission and automatically removed when mission is over.
+
+Commands:
+* [[addMissionEventHandler]]
+* [[removeMissionEventHandler]]
+
+{{Feature|informative|See [[Arma 3: Mission Event Handlers]].}}
+
+{{ArgTitle|2|Curator Event Handlers|{{GVI|arma3|1.16}}}}
+
+{{Icon|localArgument|32}}{{Icon|localEffect|32}}<br>
+[[Arma 3: Curator]] Event Handlers are also added with the [[addEventHandler]] command. They are executed only where the curator is local - on the machine that is in control of it.
+{{Feature|important|These Event Handlers must be added to the curator object/module, '''not''' the player!}}
+
+Commands:
+* [[addEventHandler]]
+* [[removeEventHandler]]
+* [[removeAllEventHandlers]]
+
+=== CuratorFeedbackMessage ===
+
+{{Icon|localArgument|32}}<br>
+Triggered when curator attempts invalid action in curator interface.
+
+Each error has its own unique ID, recognized values are:
+<spoiler text="show errors list">
+* 003 - when trying to teleport camera outside of [[curatorCameraArea]]
+* 101 - trying to place an object when placing is disabled using [[setCuratorCoef]] "place"
+* 102 - trying to place an object which is too expensive (cost set in ''curatorObjectRegistered'' multiplied by [[setCuratorCoef]] "place" is larger than [[curatorPoints]])
+* 103 - trying to place an object outside of [[curatorEditingArea]]
+* 104 - items of a placed composition were skipped / could not be placed (since {{arma3}} v2.06)
+* 201 - trying to place a waypoint when waypoint placing is disabled
+* 202 - trying to place a waypoint which is too expensive (cost set by [[setCuratorWaypointCost]] multiplied by [[setCuratorCoef]] "place" is larger than [[curatorPoints]])
+* 206 - trying to place a waypoint when no AI unit is selected
+* 301 - trying to move or rotate an entity when editing is disabled using [[setCuratorCoef]] "edit"
+* 302 - trying to move or rotate an entity when it is too expensive (entity cost multiplied by [[setCuratorCoef]] "edit" is larger than [[curatorPoints]])
+* 303 - trying to move an entity outside of [[curatorEditingArea]]
+* 304 - trying to move or rotate an entity which is outside of [[curatorEditingArea]]
+* 307 - trying to move or rotate a player (players cannot be manipulated with)
+* 401 - trying to delete an entity when deleting is disabled using [[setCuratorCoef]] "delete"
+* 402 - trying to delete an entity which is too expensive (cost multiplied by [[setCuratorCoef]] "delete" is larger than [[curatorPoints]])
+* 404 - trying to delete an entity which is outside of [[curatorEditingArea]]
+* 405 - trying to delete an entity which has [[curatorEditableObjects|non-editable]] crew in it
+* 407 - trying to delete a player (players cannot be manipulated with)
+* 501 - trying to destroy an object when destroying is disabled using [[setCuratorCoef]] "destroy"
+* 502 - trying to destroy an object which is too expensive (cost multiplied by [[setCuratorCoef]] "destroy" is larger than [[curatorPoints]])
+* 504 - trying to destroy an object which is outside of [[curatorEditingArea]]
+* 505 - trying to destroy an object which has [[curatorEditableObjects|non-editable]] crew in it
+* 506 - trying to destroy an object when no object is selected
+* 507 - trying to destroy a player (players cannot be manipulated with)
+</spoiler>
+
+<sqf>
+this addEventHandler ["CuratorFeedbackMessage", {
+	params ["_curator", "_errorID"];
+}];
+</sqf>
+
+* curator: [[Object]]
+* errorID: [[Number]]
+
+=== CuratorGroupDoubleClicked ===
+
+{{Icon|localArgument|32}}<br>
+Triggered when a group is double-clicked on in curator interface.
+
+<sqf>
+this addEventHandler ["CuratorGroupDoubleClicked", {
+	params ["_curator", "_group"];
+}];
+</sqf>
+
+* curator: [[Object]]
+* group: [[Group]]
+
+=== CuratorGroupPlaced ===
+
+{{Icon|localArgument|32}}<br>
+Triggered when new group is placed in curator interface.
+
+<sqf>
+this addEventHandler ["CuratorGroupPlaced", {
+	params ["_curator", "_group"];
+}];
+</sqf>
+
+* curator: [[Object]]
+* group: [[Group]]
+
+=== CuratorGroupSelectionChanged ===
+
+{{Icon|localArgument|32}}<br>
+Triggered when a group is selected in curator interface.
+
+<sqf>
+this addEventHandler ["CuratorGroupSelectionChanged", {
+	params ["_curator", "_group"];
+}];
+</sqf>
+
+* curator: [[Object]]
+* group: [[Group]]
+
+=== CuratorMarkerDeleted ===
+
+{{Icon|localArgument|32}}<br>
+Triggered when a marker is deleted in curator interface.
+
+<sqf>
+this addEventHandler ["CuratorMarkerDeleted", {
+	params ["_curator", "_marker"];
+}];
+</sqf>
+
+* curator: [[Object]]
+* marker: [[String]]
+
+=== CuratorMarkerDoubleClicked ===
+
+{{Icon|localArgument|32}}<br>
+Triggered when a marker is double-clicked on in curator interface.
+
+<sqf>
+this addEventHandler ["CuratorMarkerDoubleClicked", {
+	params ["_curator", "_marker"];
+}];
+</sqf>
+
+* curator: [[Object]]
+* marker: [[String]]
+
+=== CuratorMarkerEdited ===
+
+{{Icon|localArgument|32}}<br>
+Triggered when a marker is moved in curator interface.
+
+<sqf>
+this addEventHandler ["CuratorMarkerEdited", {
+	params ["_curator", "_marker"];
+}];
+</sqf>
+
+* curator: [[Object]]
+* marker: [[String]]
+
+=== CuratorMarkerPlaced ===
+
+{{Icon|localArgument|32}}<br>
+Triggered when new marker is placed in curator interface.
+
+<sqf>
+this addEventHandler ["CuratorMarkerPlaced", {
+	params ["_curator", "_marker"];
+}];
+</sqf>
+
+* curator: [[Object]]
+* marker: [[String]]
+
+=== CuratorMarkerSelectionChanged ===
+
+{{Icon|localArgument|32}}<br>
+Triggered when a marker is selected in curator interface.
+
+<sqf>
+this addEventHandler ["CuratorMarkerSelectionChanged", {
+	params ["_curator", "_marker"];
+}];
+</sqf>
+
+* curator: [[Object]]
+* marker: [[String]]
+
+=== CuratorObjectDeleted ===
+
+{{Icon|localArgument|32}}<br>
+Triggered when an object is deleted in curator interface.
+
+<sqf>
+this addEventHandler ["CuratorObjectDeleted", {
+	params ["_curator", "_entity"];
+}];
+</sqf>
+
+* curator: [[Object]]
+* entity: [[Object]]
+
+=== CuratorObjectDoubleClicked ===
+
+{{Icon|localArgument|32}}<br>
+Triggered when an object is double-clicked on in curator interface.
+
+<sqf>
+this addEventHandler ["CuratorObjectDoubleClicked", {
+	params ["_curator", "_entity"];
+}];
+</sqf>
+
+* curator: [[Object]]
+* entity: [[Object]]
+
+=== CuratorObjectEdited ===
+
+{{Icon|localArgument|32}}<br>
+Triggered when an object is moved or rotated in curator interface.
+
+<sqf>
+this addEventHandler ["CuratorObjectEdited", {
+	params ["_curator", "_entity"];
+}];
+</sqf>
+
+* curator: [[Object]]
+* entity: [[Object]]
+
+=== CuratorObjectPlaced ===
+
+{{Icon|localArgument|32}}<br>
+Triggered when new object is placed in curator interface.
+This event handler will trigger individually for each unit in a placed group - excluding the crew in vehicles.
+
+<sqf>
+this addEventHandler ["CuratorObjectPlaced", {
+	params ["_curator", "_entity"];
+}];
+</sqf>
+
+* curator: [[Object]]
+* entity: [[Object]]
+
+=== CuratorObjectRegistered ===
+
+{{Icon|localArgument|32}}<br>
+Triggered when player enters curator interface. Assign curator cost to every object in the game.
+This is the primary method that a mission designer can use to limit the objects a curator can place.<br>
+{{Feature|informative|See {{Link|Curator#Manual Assigning}}.}}
+
+<sqf>
+this addEventHandler ["CuratorObjectRegistered", {
+	params ["_curator", "_input"];
+}];
+</sqf>
+
+* curator: [[Object]]
+* input: [[Array]] of [[String]]s - all [[Arma 3: Assets|CfgVehicles]] classes
+
+=== CuratorObjectSelectionChanged ===
+
+{{Icon|localArgument|32}}<br>
+Triggered when an object is selected in curator interface.
+
+<sqf>
+this addEventHandler ["CuratorObjectSelectionChanged", {
+	params ["_curator", "_entity"];
+}];
+</sqf>
+
+* curator: [[Object]]
+* entity: [[Object]]
+
+=== CuratorPinged ===
+
+{{Icon|localArgument|32}}<br>
+Triggered when a player pings his curator(s) by pressing the ''Zeus'' key.
+
+<sqf>
+this addEventHandler ["CuratorPinged", {
+	params ["_curator", "_player"];
+}];
+</sqf>
+
+* curator: [[Object]]
+* player: [[Object]]
+
+{{ArgTitle|3|CuratorSelectionPresetLoaded|{{GVI|arma3|2.14}}}}
+
+{{Icon|localArgument|32}}<br>
+Triggered when a selection preset is loaded using the respective number key or through script.
+
+<sqf>
+this addEventHandler ["CuratorSelectionPresetLoaded", {
+	params ["_curator", "_numkey"];
+}];
+</sqf>
+
+* curator: [[Object]]
+* numkey: [[Number]]
+
+{{ArgTitle|3|CuratorSelectionPresetSaved|{{GVI|arma3|2.14}}}}
+
+{{Icon|localArgument|32}}<br>
+Triggered when a selection preset is saved using the respective CTRL + number key or set through script.
+
+<sqf>
+this addEventHandler ["CuratorSelectionPresetSaved", {
+	params ["_curator", "_numkey"];
+}];
+</sqf>
+
+* curator: [[Object]]
+* numkey: [[Number]]
+
+=== CuratorWaypointDeleted ===
+
+{{Icon|localArgument|32}}<br>
+Triggered when a waypoint is deleted in curator interface.
+
+<sqf>
+this addEventHandler ["CuratorWaypointDeleted", {
+	params ["_curator", "_waypoint"];
+}];
+</sqf>
+
+* curator: [[Object]]
+* waypoint: [[Array]]
+
+=== CuratorWaypointDoubleClicked ===
+
+{{Icon|localArgument|32}}<br>
+Triggered when a waypoint is double-clicked on in curator interface.
+
+<sqf>
+this addEventHandler ["CuratorWaypointDoubleClicked", {
+	params ["_curator", "_waypoint"];
+}];
+</sqf>
+
+* curator: [[Object]]
+* waypoint: [[Array]]
+
+=== CuratorWaypointEdited ===
+
+{{Icon|localArgument|32}}<br>
+Triggered when a waypoint is moved in curator interface.
+
+<sqf>
+this addEventHandler ["CuratorWaypointEdited", {
+	params ["_curator", "_group", "_waypointID"];
+}];
+</sqf>
+
+* curator: [[Object]]
+* group: [[Group]]
+* waypointID: [[Number]]
+
+=== CuratorWaypointPlaced ===
+
+{{Icon|localArgument|32}}<br>
+Triggered when new waypoint is placed in curator interface.
+
+<sqf>
+this addEventHandler ["CuratorWaypointPlaced", {
+	params ["_curator", "_group", "_waypointID"];
+}];
+</sqf>
+
+* curator: [[Object]]
+* group: [[Group]]
+* waypointID: [[Number]]
+
+=== CuratorWaypointSelectionChanged ===
+
+{{Icon|localArgument|32}}<br>
+Triggered when a waypoint is selected in curator interface.
+
+<sqf>
+this addEventHandler ["CuratorWaypointSelectionChanged", {
+	params ["_curator", "_waypoint"];
+}];
+</sqf>
+
+* curator: [[Object]]
+* waypoint: [[Array]]
+
+{{ArgTitle|2|UserAction Event Handlers|{{GVI|arma3|2.06}}}}
+
+UserAction Event Handlers are events that trigger on user action.
+
+Commands:
+* [[addUserActionEventHandler]]
+* [[removeUserActionEventHandler]]
+{{Feature|informative|See [[Arma 3: Modded Keybinding]].}}
+
+=== Activate ===
+
+<sqf>
+addUserActionEventHandler ["KeyName", "Activate", {
+	params ["_activated"];
+}];
+</sqf>
+
+* activated: [[Boolean]] - always returns [[true]]
+
+=== Deactivate ===
+
+<sqf>
+addUserActionEventHandler ["KeyName", "Deactivate", {
+	params ["_activated"];
+}];
+</sqf>
+
+* activated: [[Boolean]] - always returns [[false]]
+
+=== Analog ===
+
+<sqf>
+addUserActionEventHandler ["KeyName", "Analog", {
+	params ["_value"];
+}];
+</sqf>
+
+* value: [[Number]] - input device's analog value
+
+{{ArgTitle|2|Projectile Event Handlers|{{GVI|arma3|2.10}}}}
+
+Commands:
+* [[addEventHandler]]
+* [[removeEventHandler]]
+* [[removeAllEventHandlers]]
+
+=== Deleted (Projectile) ===
+
+<sqf>
+_projectile addEventHandler ["Deleted", {
+	params ["_projectile"];
+}];
+</sqf>
+
+* projectile: [[Object]]
+
+=== Deflected ===
+
+<sqf>
+_projectile addEventHandler ["Deflected", {
+	params ["_projectile", "_position", "_velocity", "_hitObject"];
+}];
+</sqf>
+
+* projectile: [[Object]]
+* position: [[Array]] format [[Position#PositionASL|PositionASL]]
+* velocity: [[Array]] format [[Vector3D]]
+* hitObject: [[Object]] - the object that deflected the projectile
+
+=== Explode ===
+
+{{Icon|localArgument|32}}<br>
+
+<sqf>
+_projectile addEventHandler ["Explode", {
+	params ["_projectile", "_position", "_velocity"];
+}];
+</sqf>
+
+* projectile: [[Object]]
+* position: [[Array]] format [[Position#PositionASL|PositionASL]]
+* velocity: [[Array]] format [[Vector3D]]
+
+=== HitExplosion ===
+
+<sqf>
+_projectile addEventHandler ["HitExplosion", {
+	params ["_projectile", "_hitEntity", "_projectileOwner", "_hitSelections", "_instigator"];
+}];
+</sqf>
+
+* projectile: [[Object]]
+* hitEntity: [[Object]]
+* projectileOwner: [[Object]]
+* hitSelections: [[Array]] of [[Array]]s - same list of FireGeometry components that {{Link|#HitPart (Entity)}} gets but only contains:
+** position: [[Array]] format [[Position#PositionASL|PositionASL]] - position of impact
+** vector: [[Array]] format [[Vector3D]] - vector that is orthogonal (perpendicular) to the surface struck. For example, if a wall was hit, vector would be pointing out of the wall at a 90 degree angle
+** selection: [[String]] - named selection of the object that was hit, in the FireGeometry LOD.
+** radius: [[Number]] - radius (size) of component hit
+** surface: [[String]] - surface type struck
+* {{GVI|arma3|2.18}} instigator: [[Object]] - shot instigator
+
+=== HitPart (Projectile) ===
+
+Triggered when the projectile hits any surface.
+
+<sqf>
+_projectile addEventHandler ["HitPart", {
+	params ["_projectile", "_hitEntity", "_projectileOwner", "_pos", "_velocity", "_normal", "_components", "_radius" ,"_surfaceType", "_instigator"];
+}];
+</sqf>
+
+* projectile: [[Object]]
+* hitEntity: [[Object]]
+* projectileOwner: [[Object]]
+* pos: [[Array]] format [[Position#PositionASL|PositionASL]]
+* velocity: [[Array]] format [[Vector3D]]
+* normal: [[Array]] format [[Vector3D]]
+* components: [[Array]] of [[String]]s - the selections that were hit, in the FireGeometry LOD.
+* radius: [[Number]] - radius (size) of the hitPoint
+* surfaceType: [[String]]
+* {{GVI|arma3|2.18}} instigator: [[Object]] - shot instigator
+
+{{Feature|important|This event handler only triggers for direct hits and not splash damage, unlike {{Link|#HitPart (Entity)}}. For splash damage, use {{Link|#HitExplosion}}.}}
+
+=== Init (Projectile) ===
+
+Triggered whenever a projectile is created. Cannot be used in scripts, only inside class Eventhandlers in config.
+<syntaxhighlight lang="cpp">init = "params ['_projectile'];";</syntaxhighlight>
+
+<sqf>params ["_projectile"];</sqf>
+
+* projectile: [[Object]] - object the event handler is assigned to
+
+{{ArgTitle|3|MineActivated|{{GVI|arma3|2.14}}}}
+
+{{Icon|localArgument|32}}
+{{Icon|localEffect|32}}<br>
+
+<sqf>
+_projectile addEventHandler ["MineActivated", {
+	params ["_projectile", "_isActive"];
+}];
+</sqf>
+
+* projectile: [[Object]]
+* isActive: [[Boolean]] - new active state of the mine
+
+=== Penetrated ===
+
+This event fires as many times as the projectile penetrates a surface.
+
+<sqf>
+_projectile addEventHandler ["Penetrated", {
+	params ["_projectile", "_hitObject", "_surfaceType", "_entryPoint", "_exitPoint", "_exitVector"];
+}];
+</sqf>
+
+* projectile: [[Object]]
+* hitObject: [[Object]]
+* surfaceType: [[String]] - see [[surfaceType]]
+* entryPoint: [[Array]] format [[Position#PositionASL|PositionASL]] - the projectile's entry point
+* exitPoint: [[Array]] format [[Position#PositionASL|PositionASL]] - the projectile's exit point
+* exitVector: [[Array]] format [[Vector3D]] - speed/angle exit vector (see [[vectorMagnitude]] to obtain the speed, in metre per second)
+
+=== SubmunitionCreated ===
+
+This event fires as many times as submunitions are created.
+
+<sqf>
+_projectile addEventHandler ["SubmunitionCreated", {
+	params ["_projectile", "_submunitionProjectile", "_position", "_velocity"];
+}];
+</sqf>
+
+* projectile: [[Object]]
+* subMunitionProjectile: [[Object]]
+* position: [[Array]] format [[Position#PositionASL|PositionASL]]
+* velocity: [[Array]] format [[Vector3D]]
+
+{{ArgTitle|2|Group Event Handlers|{{GVI|arma3|2.10}}}}
+
+Commands:
+* [[addEventHandler]]
+* [[removeEventHandler]]
+* [[removeAllEventHandlers]]
+
+=== CombatModeChanged ===
+
+Triggers when the group's '''[[AI Behaviour|behaviour]]''' changes (see [[behaviour]], [[setBehaviour]])
+
+<sqf>
+_group addEventHandler ["CombatModeChanged", {
+	params ["_group", "_newMode"];
+}];
+</sqf>
+
+* group: [[Group]]
+* newMode: [[String]] - see [[AI Behaviour]] ('''not''' [[Combat Modes]]!)
+
+=== CommandChanged ===
+
+<sqf>
+_group addEventHandler ["CommandChanged", {
+	params ["_group", "_newCommand"];
+}];
+</sqf>
+
+* group: [[Group]]
+* newCommand: [[String]], can be one of: <spoiler>
+{|
+| "NO CMD" || NoCommand
+|-
+| "WAIT" || Wait
+|-
+| "ATTACK" || Attack
+|-
+| "Suppress" || Suppress
+|-
+| "HIDE" || Hide
+|-
+| "MOVE" || Move
+|-
+| "HOOK CARGO" || HookCargo
+|-
+| "UNHOOK CARGO" || UnhookCargo
+|-
+| "VIV GETIN" || ViVGetIn
+|-
+| "VIV GETOUT" || ViVGetOut
+|-
+| "VIV UNLOAD" || ViVUnload
+|-
+| "HEAL" || Heal
+|-
+| "REPAIR" || Repair
+|-
+| "REFUEL" || Refuel
+|-
+| "REARM" || Rearm
+|-
+| "SUPPORT" || Support
+|-
+| "JOIN" || Join
+|-
+| "GET IN" || GetIn
+|-
+| "FIRE" || Fire
+|-
+| "GET OUT" || GetOut
+|-
+| "STOP" || Stop
+|-
+| "EXPECT" || Expect
+|-
+| "ACTION" || Action
+|-
+| "SCRIPTED" || Scripted
+|-
+| "DISMISS" || Dismiss
+|-
+| "HEAL SOLDIER" || HealSoldier
+|-
+| "PATCH SOLDIER" || PatchSoldier
+|-
+| "FIRST AID" || FirstAid
+|-
+| "HEAL SELF" || HealSoldierSelf
+|-
+| "ATTACK AND FIRE" || AttackAndFire
+|-
+| "CARRY SOLDIER" || CarrySoldier
+|-
+| "DROP CARRIED" || DropCarried
+|-
+| "TAKE BAG" || TakeBag
+|-
+| "ASSEMBLE" || Assemble
+|-
+| "DISASSEMBLE" || DisAssemble
+|-
+| "DROP BAG" || DropBag
+|-
+| "OPEN BAG" || OpenBag
+|-
+| "IRLASER ON" || IRLaserOn
+|-
+| "IRLASER OFF" || IRLaserOff
+|-
+| "GUN LIGHT ON" || GunLightOn
+|-
+| "GUN LIGHT OFF" || GunLightOff
+|-
+| "FIRE AT POSITION" || FireAtPosition
+|-
+| "REPAIR VEHICLE" || RepairVehicle
+|-
+| "OPEN PARA" || OpenParachute
+|-
+| "KEEP DEPTH LEADER" || KeepDepthLeader
+|-
+| "KEEP DEPTH UND SURF" || KeepDepthUnderSurface
+|-
+| "KEEP DEPTH ABV SURF" || KeepDepthAboveSurface
+|-
+| "KEEP DEPTH BOTTOM" || KeepDepthBottom
+|-
+| "PUT IN" || PutIn
+|-
+| "UNLOAD FROM" || UnloadFrom
+|-
+| "USE CONTAINER MAGAZINE" || UseContainerMagazine
+|-
+| "ACTIVATE MINE" || ActivateMine
+|-
+| "DISABLE MINE" || DisableMine
+|}
+</spoiler>
+
+=== Deleted (Group) ===
+
+<sqf>
+_group addEventHandler ["Deleted", {
+	params ["_group"];
+}];
+</sqf>
+
+* group: [[Group]]
+
+=== Empty ===
+
+<sqf>
+_group addEventHandler ["Empty", {
+	params ["_group"];
+}];
+</sqf>
+
+* group: [[Group]]
+
+=== EnableAttackChanged ===
+
+<sqf>
+_group addEventHandler ["EnableAttackChanged", {
+	params ["_group", "_attackEnabled"];
+}];
+</sqf>
+
+* group: [[Group]]
+* attackEnabled: [[Boolean]]
+
+=== EnemyDetected ===
+
+<sqf>
+_group addEventHandler ["EnemyDetected", {
+	params ["_group", "_newTarget"];
+}];
+</sqf>
+
+* group: [[Group]]
+* newTarget: [[Object]]
+
+=== Fleeing ===
+
+<sqf>
+_group addEventHandler ["Fleeing", {
+	params ["_group", "_fleeingNow"];
+}];
+</sqf>
+
+* group: [[Group]]
+* fleeingNow: [[Boolean]]
+
+=== FormationChanged ===
+
+<sqf>
+_group addEventHandler ["FormationChanged", {
+	params ["_group", "_newFormation"];
+}];
+</sqf>
+
+* group: [[Group]]
+* newFormation: [[String]] - see [[setFormation]]
+
+=== GroupIdChanged ===
+
+<sqf>
+_group addEventHandler ["GroupIdChanged", {
+	params ["_group", "_newGroupId"];
+}];
+</sqf>
+
+* group: [[Group]]
+* newGroupId: [[String]]
+
+=== KnowsAboutChanged ===
+
+<sqf>
+_group addEventHandler ["KnowsAboutChanged", {
+	params ["_group", "_targetUnit", "_newKnowsAbout", "_oldKnowsAbout"];
+}];
+</sqf>
+
+* group: [[Group]]
+* targetUnit: [[Object]]
+* newKnowsAbout: [[Number]]
+* oldKnowsAbout: [[Number]]
+
+=== LeaderChanged ===
+
+<sqf>
+_group addEventHandler ["LeaderChanged", {
+	params ["_group", "_newLeader"];
+}];
+</sqf>
+
+* group: [[Group]]
+* newLeader: [[Object]]
+
+=== Local (Group) ===
+
+<sqf>
+_group addEventHandler ["Local", {
+	params ["_group", "_isLocal"];
+}];
+</sqf>
+
+* group: [[Group]]
+
+=== SpeedModeChanged ===
+
+<sqf>
+_group addEventHandler ["SpeedModeChanged", {
+	params ["_group", "_newSpeedMode"];
+}];
+</sqf>
+
+* group: [[Group]]
+* newSpeedMode: [[String]] - see [[setSpeedMode]]
+
+=== UnitJoined ===
+
+<sqf>
+_group addEventHandler ["UnitJoined", {
+	params ["_group", "_newUnit"];
+}];
+</sqf>
+
+* group: [[Group]]
+* newUnit: [[Object]]
+
+{{ArgTitle|3|UnitKilled|{{GVI|arma3|2.18}}}}
+
+{{Icon|localArgument|32}}<br>
+Triggered when a unit in the group is killed.
+
+<sqf>
+_group addEventHandler ["UnitKilled", {
+	params ["_group", "_unit", "_killer", "_instigator", "_useEffects"];
+}];
+</sqf>
+
+* group: [[Group]] - the group the event handler is assigned to
+* unit: [[Object]] - the unit that was killed
+* killer: [[Object]] - the object that killed the unit. Contains the unit itself in case of collisions.
+* instigator: [[Object]] - the person who pulled the trigger
+* useEffects: [[Boolean]] - same as ''useEffects'' in [[setDamage]] alt syntax
+
+=== UnitLeft ===
+
+<sqf>
+_group addEventHandler ["UnitLeft", {
+	params ["_group", "_oldUnit"];
+}];
+</sqf>
+
+* group: [[Group]]
+* oldUnit: [[Object]]
+
+=== VehicleAdded ===
+
+<sqf>
+_group addEventHandler ["VehicleAdded", {
+	params ["_group", "_newVehicle"];
+}];
+</sqf>
+
+* group: [[Group]]
+* newVehicle: [[Object]]
+
+=== VehicleRemoved ===
+
+<sqf>
+_group addEventHandler ["VehicleRemoved", {
+	params ["_group", "_oldVehicle"];
+}];
+</sqf>
+
+* group: [[Group]]
+* oldVehicle: [[Object]]
+
+=== WaypointComplete ===
+
+<sqf>
+_group addEventHandler ["WaypointComplete", {
+	params ["_group", "_waypointIndex"];
+}];
+</sqf>
+
+* group: [[Group]]
+* waypointIndex: [[Number]]
+
+
+== Game UI Event Handlers ==
+
+In Game UI Event Handlers trigger when user scrolls or activates in game action menu.<br>
+The following mission EHs are available in {{arma3}}:
+* [[Arma 3: Event Handlers/inGameUISetEventHandler#PrevAction|PrevAction]] - action menu scroll up event
+* [[Arma 3: Event Handlers/inGameUISetEventHandler#Action|Action]] - action menu action event
+* [[Arma 3: Event Handlers/inGameUISetEventHandler#NextAction|NextAction]] - action menu scroll down event
+
+{{Feature|important|Only one event of each kind can exist, adding another will overwrite the existing one.}}
+
+Commands:
+* [[inGameUISetEventHandler]]
+
+{{Feature|informative|See {{Link|Arma 3: Event Handlers/inGameUISetEventHandler}}.}}
+
+
+== Control/Display UI Event Handlers ==
+
+Commands:
+* [[ctrlAddEventHandler]]
+* [[ctrlRemoveEventHandler]]
+* [[ctrlRemoveAllEventHandlers]]
+* [[displayAddEventHandler]]
+* [[displayRemoveEventHandler]]
+* [[displayRemoveAllEventHandlers]]
+
+{{Feature|informative|See [[User Interface Event Handlers]].}}
+
+
+== Music Event Handlers ==
+
+Music event handler, always executed on the computer where it was added.
+
+{{Feature|informative|Does not apply to [[hasInterface|interface-less]] machines (dedicated server, headless client).}}
+
+Commands:
+* [[setMusicEventHandler]]
+* [[addMusicEventHandler]]
+* [[removeMusicEventHandler]]
+* [[removeAllMusicEventHandlers]]
+
+{{ArgTitle|3|MusicStart|{{GVI|arma3|0.50}}}}
+
+Triggers when [[Description.ext#cfgMusic|CfgMusic]] sound starts playing, after being executed with [[playMusic]] command.
+
+<sqf>
+addMusicEventHandler ["MusicStart", {
+	params ["_musicClassname", "_eventHandlerID", "_currentPosition", "_totalLength"];
+}];
+</sqf>
+
+* musicClassName: [[String]] - [[Description.ext#Music|CfgMusic]] class name of the music that started
+* eventHandlerID: [[Number]] - EH id returned by [[addMusicEventHandler]]
+* {{GVI|arma3|2.18}} currentPosition: [[Number]] - current playback position in 0...1 range (see also: [[getMusicPlayedTime]])
+* {{GVI|arma3|2.18}} totalLength: [[Number]] - track total length in seconds
+
+{{ArgTitle|3|MusicStop|{{GVI|arma3|0.50}}}}
+
+Triggers when [[Description.ext#cfgMusic|CfgMusic]] sound finished playing, after being executed with [[playMusic]] command.<br>
+{{GVI|arma3|2.14|size= 0.75}} <sqf inline>playMusic ""</sqf> triggers this event if a music is currently playing.
+
+<sqf>
+addMusicEventHandler ["MusicStop", {
+	params ["_musicClassname", "_eventHandlerID", "_currentPosition", "_totalLength"];
+}];
+</sqf>
+
+* musicClassName: [[String]] - [[Description.ext#Music|CfgMusic]] class name of the music that stopped
+* eventHandlerID: [[Number]] - EH id returned by [[addMusicEventHandler]]
+* {{GVI|arma3|2.18}} currentPosition: [[Number]] - current playback position in 0...1 range (see also: [[getMusicPlayedTime]])
+* {{GVI|arma3|2.18}} totalLength: [[Number]] - track total length in seconds
+
+
+== Eden Editor ==
+
+Commands:
+* [[add3DENEventHandler]]
+* [[remove3DENEventHandler]]
+* [[removeAll3DENEventHandlers]]
+
+{{Feature|informative|
+See also:
+* [[Arma 3: Event Handlers: Eden Editor]]
+* its sub-category [[Arma 3: Event Handlers: Eden Editor#Object Event Handlers|Object Event Handlers]]
+* [[:Category:Eden Editor|Eden Editor]]
+}}
+
+
+== Public Variable Broadcast Event ==
+
+Commands:
+* [[addPublicVariableEventHandler]]
+
+Triggers when [[missionNamespace]] variable EH is associated with is sent over network via [[publicVariable]], [[publicVariableServer]] or [[publicVariableClient]] commands.
+{{Feature|informative|Unlike with other types of EHs, there is no way of removing added public variable event handler}}
+
+
+== Weapon Muzzle Config Events ==
+
+There are six event handlers that can be set on weapon in config. Their parameters are the same as their entity EH equivalents.
+* "Fired" - when muzzle fired - see [[#Fired|Fired]]
+* "Reload" - before muzzle is reloaded - see [[#MagazineReloading|MagazineReloading]]
+* "Reloaded" - after muzzle is reloaded - see [[#Reloaded|Reloaded]]
+* "MagazineUnloaded" - when the magazine is removed - see [[#MagazineUnloaded|MagazineUnloaded]]
+* "WeaponChanged" - when the weapon is switched to or from - see [[#WeaponChanged|WeaponChanged]]
+* "SlotItemChanged" - when one of the weapon's attachments is changed - see [[#SlotItemChanged|SlotItemChanged]]
+<syntaxhighlight lang="cpp">
+class CfgWeapons
+{
+	class RifleCore;
+	class TAG_Rifle : RifleCore
+	{
+		class EventHandlers
+		{
+			fired		= "systemChat format ['fired weapon EH output: %1 [time: %2]', _this, time]";
+			reload		= "systemChat format ['reload weapon EH output: %1 [time: %2]', _this, time]";
+			reloaded	= "systemChat format ['reloaded weapon EH output: %1 [time: %2]', _this, time]";
+			magazineunloaded	= "systemChat format ['magazineunloaded weapon EH output: %1 [time: %2]', _this, time]";
+			slotitemchanged	= "systemChat format ['slotitemchanged weapon EH output: %1 [time: %2]', _this, time]";
+			weaponchanged	= "systemChat format ['weaponchanged weapon EH output: %1 [time: %2]', _this, time]";
+		};
+	};
+};
+</syntaxhighlight>
+
+== Ammo Config Events ==
+
+There are three event handlers that can be set on ammo in config:
+* "init" - when the ammo is created, by any mean (fired, created, etc). Params: [shot]
+* "fired" - when the ammo is fired (legacy). Params: same as in entity EH "Fired".
+* "ammoHit" - when the ammo hits anything (can trigger multiple times). Params: [shot, shooter, hitobj, pos, velocity, hitComponents, [hit, indirecthit, indirecthitrange, explosive, name], normal, explode, instigator (since Arma 3 v2.18)] 
+<syntaxhighlight lang="cpp">
+class CfgAmmo
+{
+	class BulletCore;
+	class TAG_Bullet : BulletCore
+	{
+		class EventHandlers
+		{
+			init	= "systemChat format ['init ammo EH output: %1 [time: %2]', _this, time]";
+			fired	= "systemChat format ['fired ammo EH output: %1 [time: %2]', _this, time]";
+			ammoHit	= "systemChat format ['ammoHit EH output: %1 [time: %2]', _this, time]";
+		};
+	};
+};
+</syntaxhighlight>
+
+
+== BI Scripted Events ==
+
+Commands:
+* [[BIS_fnc_addScriptedEventHandler]]
+* [[BIS_fnc_removeScriptedEventHandler]]
+* [[BIS_fnc_removeAllScriptedEventHandlers]]
+* [[BIS_fnc_callScriptedEventHandler]]
+
+
+{{Feature|informative|See also [[Arma 3: Scripted Event Handlers]].}}
+{{Sticky|Jump to [[#top|the top]] of the page|bottom}} 
+
+
+[[Category: Event Handlers]]

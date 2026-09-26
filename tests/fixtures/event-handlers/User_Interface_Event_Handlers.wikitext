@@ -1,0 +1,518 @@
+__NOEDITSECTION__
+{{TOC|side}}
+User Interface Event Handlers are used to execute code when events related to GUI components (i.e. [[Display]]s and [[Control]]s) occur.
+
+{{Feature|warning| About [[ctrlDelete]] in an Event Handler's script: [[ctrlDelete]] needs to be the last executed statement or Arma will crash.<br>
+Alternatively, the code can also be [[Scheduler|spawned]] to circumvent this issue.
+<syntaxhighlight lang="cpp">
+onButtonClick = "ctrlDelete (_this select 0); systemChat 'You will never see this';";			// Crashes the game
+onButtonClick = "systemChat 'Bye bye button!'; ctrlDelete (_this select 0);";					// Works fine
+onButtonClick = "_this spawn { ctrlDelete (_this select 0); systemChat 'Bye bye button!'; };";	// Works fine
+</syntaxhighlight>
+}}
+
+
+== Reference List ==
+
+=== Generic Events ===
+
+<div><!-- Used to limit Sticky range -->
+==== onLoad ====
+* '''Use on:''' Display, Control
+* '''Fired on:''' Fires when UI container is created, but no action is taken. The {{hl|onLoad}} event for display fires '''after''' the {{hl|onLoad}} events for all controls it contains are fired.
+* '''Returns:''' Display or control, for controls it also returns the control's config (since {{GVI|arma3|1.56}}).
+<sqf>params ["_displayOrControl", ["_config", configNull]];</sqf>
+{{Feature|informative|The order of initialisation is as follows:
+# all controls, top to bottom.
+# Display
+This means that during the {{hl|onLoad}} event of the upper controls the lower controls have yet to be created.}}
+
+==== onUnload ====
+* '''Use on:''' Display
+* '''Fired on:''' Display is closed, but no controls are destroyed yet.
+* '''Returns:''' Returns the display and exit code.
+<sqf>params ["_display", "_exitCode"];</sqf>
+{{Feature|informative|The {{hl|onUnload}} event never fires for RscTitles displays created with [[cutRsc]].}}
+{{Feature|warning|Code or function should be [[call]]ed, otherwise controls might be destroyed before [[spawn]]ed code is executed!}}
+
+==== onChildDestroyed ====
+* '''Use on:''' Display
+* '''Fired on:''' Child display is closed.
+* '''Returns:''' Returns the display, which child display was closed and exit code.
+<sqf>params ["_display", "_closedChildDisplay", "_exitCode"];</sqf>
+
+{{ArgTitle|4|onCommitted|{{GVI|arma3|2.14}}}}
+* '''Use on:''' Control
+* '''Fired on:''' [[ctrlSetFade]], [[ctrlSetScale]], [[ctrlSetAngle]] and [[ctrlSetPosition]] in combination with [[ctrlCommit]].
+* '''Returns:''' Returns the control, type of animation ({{hl|"alpha"}}, {{hl|"scale"}}, {{hl|"rotation"}} or {{hl|"position"}}) and the committed time.
+<sqf>params ["_control", "_animType", "_animTime"];</sqf>
+
+{{ArgTitle|4|onEditChanged|{{GVI|arma3|2.14}}}}
+* '''Use on:''' Control
+* '''Fired on:''' Any changes to the [[CT_EDIT]] text field content.
+* '''Returns:''' Returns the control and the changed text.
+<sqf>params ["_control", "_newText"];</sqf>
+
+==== onMouseEnter ====
+* '''Use on:''' Control
+* '''Fired on:''' The mouse pointer enters the control area.
+* '''Returns:''' Returns control.
+<sqf>params ["_control"];</sqf>
+{{Feature|informative|
+The {{hl|onMouseEnter}} event only fires on enabled buttons (see [[ctrlEnable]]).<br>
+{{GVI|arma3|2.18|size= 0.75}} This event handler type seems to only work on controls that can be interacted with. For example buttons, listboxes and so on.
+}}
+
+==== onMouseExit ====
+* '''Use on:''' Control
+* '''Fired on:''' The mouse pointer exits the control area.
+* '''Returns:''' Returns control.
+<sqf>params ["_control"];</sqf>
+{{Feature|informative|{{GVI|arma3|2.18|size= 0.75}} This event handler type seems to only work on controls that can be interacted with. For example buttons, listboxes and so on.}}
+
+==== onSetFocus ====
+* '''Use on:''' Control
+* '''Fired on:''' Input focus is on control. It now begins to accept keyboard input.
+* '''Returns:''' Returns control.
+<sqf>params ["_control"];</sqf>
+
+==== onKillFocus ====
+* '''Use on:''' Control
+* '''Fired on:''' Input focus is no longer on control. It no longer accepts keyboard input.
+* '''Returns:''' Returns control.
+<sqf>params ["_control"];</sqf>
+
+==== onTimer ====
+* '''Use on:''' Control
+* '''Fired on:''' N/A.
+* '''Returns:''' N/A.
+{{Feature|informative|This feature has yet to be implemented.}}
+
+==== onKeyDown ====
+* '''Use on:''' Display, Control
+* '''Fired on:''' Pressing any keyboard key. Fired before the [[#onKeyUp|{{hl|onKeyUp}}]] event.
+* '''Returns:''' Returns the display or control, the [[DIK_KeyCodes|keyboard code]] and the state of {{Controls|Shift}}, {{Controls|Ctrl}} and {{Controls|Alt}}.
+<sqf>
+params ["_displayOrControl", "_key", "_shift", "_ctrl", "_alt"];
+true // Intercepts the default action, e.g. pressing Escape won't close the dialog.
+</sqf>
+
+In {{arma3}}, in order to be able to intercept key events during gameplay, the Event Handler should be added to [[Arma_3:_IDD_List|Display 46]]:
+<sqf>
+findDisplay 46 displayAddEventHandler ["KeyDown", {}];
+</sqf>
+
+In general, one should never return [[true]] in the {{hl|onKeyDown}} EH, especially if it's added to [[Arma_3:_IDD_List|Display 46]] - otherwise all input is overridden and there is no way to do anything in the game anymore.
+{{Feature|warning|Pressing and holding key triggers 'autorepeat' action on Windows, which in turn will make this EH fire repeatedly as well.}}
+
+==== onKeyUp ====
+* '''Use on:''' Display, Control
+* '''Fired on:''' Releasing any keyboard key. Fired after the [[#onKeyDown|onKeyDown]] event.
+* '''Returns:''' Returns the display or control, the [[DIK_KeyCodes|keyboard code]] and the state of {{Controls|Shift}}, {{Controls|Ctrl}} and {{Controls|Alt}}.
+<sqf>params ["_displayOrControl", "_key", "_shift", "_ctrl", "_alt"];</sqf>
+
+==== onChar ====
+* '''Use on:''' Display, Control
+* '''Fired on:''' When some readable characters is recognised.
+* '''Returns:''' Returns the display or control and the {{Link|https://www.ascii-code.com/|char code}}.
+<sqf>params ["_displayOrControl", "_charCode"];</sqf>
+
+==== onIMEChar ====
+* '''Use on:''' Control
+* '''Fired on:''' When IME character is recognized (used in Korean and other eastern languages).
+* '''Returns:''' Returns the control and the char code.
+<sqf>params ["_control", "_charCode"];</sqf>
+
+==== onIMEComposition ====
+* '''Use on:''' Control
+* '''Fired on:''' When partial IME character is recognized (used in Korean and other eastern languages).
+* '''Returns:''' Returns the control and the char code.
+<sqf>params ["_control", "_charCode"];</sqf>
+
+==== onMouseButtonDown ====
+* '''Use on:''' Display, Control
+* '''Fired on:''' Pressing a mouse button. Followed by the [[#onMouseButtonUp|{{hl|onMouseButtonUp}}]] event.
+* '''Returns:''' Returns the display or control, the pressed button, the x and y coordinates and the state of {{Controls|Shift}}, {{Controls|Ctrl}} and {{Controls|Alt}}.
+<sqf>params ["_displayOrControl", "_button", "_xPos", "_yPos", "_shift", "_ctrl", "_alt"];</sqf>
+
+==== onMouseButtonUp ====
+* '''Use on:''' Display, Control
+* '''Fired on:''' Releasing a mouse button. Follows the [[#onMouseButtonDown|{{hl|onMouseButtonDown}}]] event.
+* '''Returns:''' Returns the display or control, the pressed button, the x and y coordinates and the state of {{Controls|Shift}}, {{Controls|Ctrl}} and {{Controls|Alt}}.
+<sqf>params ["_displayOrControl", "_button", "_xPos", "_yPos", "_shift", "_ctrl", "_alt"];</sqf>
+
+==== onMouseButtonClick ====
+* '''Use on:''' ListBox, ComboBox, TextBox, Button, ActiveText
+* '''Fired on:''' Pressing and releasing a mouse button.
+* '''Returns:''' Returns the control, the pressed button, the x and y coordinates and the state of {{Controls|Shift}}, {{Controls|Ctrl}} and {{Controls|Alt}}.
+<sqf>params ["_control", "_button", "_xPos", "_yPos", "_shift", "_ctrl", "_alt"];</sqf>
+
+==== onMouseButtonDblClick ====
+* '''Use on:''' Control
+* '''Fired on:''' Pressing and releasing a mouse button twice within very short time.
+* '''Returns:''' Returns the control, the pressed button, the x and y coordinates and the state of {{Controls|Shift}}, {{Controls|Ctrl}} and {{Controls|Alt}}.
+<sqf>params ["_control", "_button", "_xPos", "_yPos", "_shift", "_ctrl", "_alt"];</sqf>
+
+==== onMouseMoving ====
+* '''Fired on:''' Fires continuously while moving the mouse with a certain interval.
+<hr />
+* '''Use on:''' Control, Display
+* '''Returns:''' Returns the control, the x and y coordinates relative to the controls parent and mouseOver.<br>If the controls parent is its display then x and y will be the same as [[getMousePosition]] else it will be relative to its parent control (for instance if inside a [[CT_CONTROLS_GROUP]]).
+<sqf>params ["_control", "_xPos", "_yPos", "_mouseOver"];</sqf>
+<hr />
+* '''Use on:''' Display
+* '''Returns:''' Returns the display, and how much the mouse was moved since the last time the event fired in UI coordinates.
+<sqf>params ["_display", "_xDeltaPos", "_yDeltaPos"];</sqf>
+
+==== onMouseHolding ====
+* '''Fired on:''' Fires continuously with a specific interval while mouse is stationary.
+<hr />
+* '''Use on:''' Control, Display
+* '''Returns:''' Returns the control, the x and y coordinates relative to the controls parent and mouseOver.<br>If the controls parent is its display then x and y will be the same as [[getMousePosition]] else it will be relative to its parent control (for instance if inside a [[CT_CONTROLS_GROUP]]).
+<sqf>params ["_control", "_xPos", "_yPos", "_mouseOver"];</sqf>
+<hr />
+* '''Use on:''' Display
+* '''Returns:''' Returns the display, and ''some kind of'' x and y delta position.
+<sqf>params ["_display", "_xPos", "_yPos"];</sqf>
+
+==== onMouseZChanged ====
+* '''Use on:''' Display, Control
+* '''Fired on:''' Fires when mouse wheel position is changed. Only fires on enabled controls.
+* '''Returns:''' Returns the display or control and the change of the scrollwheel.
+<sqf>params ["_displayOrControl", "_scroll"];</sqf>
+
+==== onCanDestroy ====
+* '''Use on:''' Control
+* '''Fired on:''' Ask this control if dialog can be closed (used for validation of contained data).
+* '''Returns:''' Returns the control and exit code.
+<sqf>params ["_control", "_exitCode"];</sqf>
+
+==== onDestroy ====
+* '''Use on:''' Control
+* '''Fired on:''' Destroying control
+* '''Returns:''' Returns the control and exit code.
+<sqf>params ["_control", "_exitCode"];</sqf>
+
+
+=== Button Events ===
+
+==== onButtonClick ====
+* '''Use on:''' Button
+* '''Fired on:''' The attached button action is performed. When returned value is [[true]], the engine behaviour is overridden.
+* '''Returns:''' Returns control.
+<sqf>params ["_control"];</sqf>
+
+{{ArgTitle|4|onButtonDblClick|{{GVI|arma3|1.00}}}}
+* '''Use on:''' Button
+* '''Fired on:''' Button double clicked.
+* '''Returns:''' Returns control.
+<sqf>params ["_control"];</sqf>
+
+==== onButtonDown ====
+* '''Use on:''' Button
+* '''Fired on:''' The left mouse button is pressed over the button area or a key on the keyboard is pressed.
+* '''Returns:''' Returns control.
+<sqf>params ["_control"];</sqf>
+
+==== onButtonUp ====
+* '''Use on:''' Button
+* '''Fired on:''' When left mouse button is released outside the button area and the attached button action '''went unexecuted'''.
+* '''Returns:''' Returns control.
+<sqf>params ["_control"];</sqf>
+
+
+=== Listbox Events ===
+
+==== onLBSelChanged ====
+* '''Use on:''' Listbox, Combobox, Table
+* '''Fired on:''' The selection in a listbox is changed. The left mouse button has been released and the new selection is fully made.
+{{Feature|warning|This EH will fire even if no new selection was made and the user clicked on existing selection}}
+{{Feature|informative|Since {{GVI|arma3|2.11}} controls with the LB_MULTI style pass an additional <var>_lbSelection</var> parameter to the EH script (see [[lbCurSel]], [[lbSelection]]).}}
+* '''Returns:''' Returns the control and the selected element index.
+<sqf>params ["_control", "_lbCurSel", "_lbSelection"];</sqf>
+
+==== onLBListSelChanged ====
+* '''Use on:''' Combobox
+* '''Fired on:''' When selection in XCombo box changed (but value has yet to be stored).
+* '''Returns:''' Returns the control and the selected element index.
+<sqf>params ["_control", "_selectedIndex"];</sqf>
+
+==== onLBDblClick ====
+* '''Use on:''' Listbox
+* '''Fired on:''' Double click on some row in listbox.
+* '''Returns:''' Returns the control and the selected element index.
+<sqf>params ["_control", "_selectedIndex"];</sqf>
+
+==== onLBDrag ====
+* '''Use on:''' Listbox
+* '''Fired on:''' Drag & drop operation started.
+* '''Returns:''' Returns the control and an array of arrays of information on the dragged item(s) (if listbox is of style LB_MULTI then multiple items can be dragged and dropped at the same time).<br>Control must have unique IDC and {{hl|canDrag}} parameter enabled in its class in order to work.
+<sqf>
+params ["_control", "_listboxInfo"];
+// Get info of first item being dragged:
+(_listboxInfo select 0) params ["_lbText", "_lbValue", "_lbData"];
+</sqf>
+
+==== onLBDragging ====
+* '''Use on:''' Listbox
+* '''Fired on:''' Drag & drop operation is in progress.
+* '''Returns:''' Returns the control, the x and y coordinates in screen space, listbox IDC where item(s) were dragged from and an array of arrays of information on the dragged item(s) (if listbox is of style LB_MULTI then multiple items can be dragged and dropped at the same time).
+<sqf>
+params ["_control", "_xPos", "_yPos", "_listboxIDC", "_listboxInfo"];
+// Get info of first item being dragged:
+(_listboxInfo select 0) params ["_lbText", "_lbValue", "_lbData"];
+</sqf>
+
+==== onLBDrop ====
+* '''Use on:''' Listbox, Combobox, Textbox, ActiveText, Button, ControlsGroup
+* '''Fired on:''' When a Drag & drop operation is finished.
+* '''Returns:''' Returns the control, the x and y coordinates in screen space, listbox IDC where item(s) were dragged from and an array of arrays of information on the dropped item(s) (if listbox is of style LB_MULTI then multiple items can be dragged and dropped at the same time).<br>When the Listbox is inside a [[CT_CONTROLS_GROUP]] the Event Handler needs to be added to the [[CT_CONTROLS_GROUP]].<br>Will only work for a [[CT_CONTROLS_GROUP]] that is outside of any other group.
+<sqf>
+params ["_control", "_xPos", "_yPos", "_listboxIDC", "_listboxInfo"];
+//Get info of first item being dropped:
+(_listboxInfo select 0) params ["_lbText", "_lbValue", "_lbData"];
+</sqf>
+
+
+=== Tree Events ===
+
+==== onTreeSelChanged ====
+* '''Use on:''' Tree
+* '''Fired on:''' Changing the selection in a tree.
+* '''Returns:''' Returns the control and the new selection path.
+<sqf>params ["_control", "_selectionPath"];</sqf>
+
+==== onTreeLButtonDown ====
+* '''Use on:''' Tree
+* '''Fired on:''' Pressing and releasing left mouse button on a tree.
+* '''Returns:''' Returns the control.
+<sqf>params ["_control"];</sqf>
+
+==== onTreeDblClick ====
+* '''Use on:''' Tree
+* '''Fired on:''' Pressing and releasing twice on a tree entry.
+* '''Returns:''' Returns the control and the current selection path.
+<sqf>params ["_control", "_selectionPath"];</sqf>
+
+==== onTreeExpanded ====
+* '''Use on:''' Tree
+* '''Fired on:''' The tree folder structure has been expanded.
+* '''Returns:''' Returns the control and path.
+<sqf>params ["_control", "_selectionPath"];</sqf>
+
+==== onTreeCollapsed ====
+* '''Use on:''' Tree
+* '''Fired on:''' The tree folder structure has been collapsed.
+* '''Returns:''' Returns the control and path.
+<sqf>params ["_control", "_selectionPath"];</sqf>
+
+==== onTreeMouseMove ====
+* '''Use on:''' Tree
+* '''Fired on:''' Fires continuously while moving the mouse with a certain interval.
+* '''Returns:''' Returns the control. Also returns the path, probably since [[:Category:Eden Editor|Eden Editor]] update.
+<sqf>params ["_control", "_path"];</sqf>
+
+==== onTreeMouseHold ====
+* '''Use on:''' Tree
+* '''Fired on:''' Fires continuously at a specific interval while mouse is still.
+* '''Returns:''' Returns the control. Also returns the path, probably since [[:Category:Eden Editor|Eden Editor]] update.
+<sqf>params ["_control", "_path"];</sqf>
+
+==== onTreeMouseExit ====
+* '''Use on:''' Tree
+* '''Fired on:''' The mouse pointer exits the tree control area
+* '''Returns:''' Returns the control.
+<sqf>params ["_control"];</sqf>
+
+{{ArgTitle|4|onTreeFilterUpdated|{{GVI|arma3|2.12}}}}
+* '''Use on:''' Tree
+* '''Fired on:''' A search/filter done on the tree
+* '''Returns:''' Returns the control.
+<sqf>params ["_treeControl", "_searchControl", "_searchString"];</sqf>
+
+
+=== Checkbox Events ===
+
+{{ArgTitle|4|onChecked|{{GVI|arma3|1.00}}}}
+* '''Use on:''' Checkbox ([[CT_CHECKBOX]]).
+* '''Fired on:''' N/A
+* '''Returns:''' N/A
+{{Feature|informative|This feature has yet to be implemented.}}
+
+{{ArgTitle|4|onCheckedChanged|{{GVI|arma3|1.00}}}}
+* '''Use on:''' Checkbox ([[CT_CHECKBOX]]).
+* '''Fired on:''' Checked state of ctrlCheckBox / RscCheckBox changed.
+* '''Returns:''' Returns control and the checked state ( 0 for unchecked, 1 for checked ).
+<sqf>params ["_control", "_checked"];</sqf>
+
+==== onCheckBoxesSelChanged ====
+* '''Use on:''' Checkboxes ([[CT_CHECKBOXES]]).
+* '''Fired on:''' Changed the selection of checkboxes.
+* '''Returns:''' Returns the control, the selected element index and the current state.
+<sqf>params ["_control", "_selectedIndex", "_currentState"];</sqf>
+
+
+=== Misc. Events ===
+
+==== onToolBoxSelChanged ====
+* '''Use on:''' Toolbox
+* '''Fired on:''' Changed the selection in a toolbox.
+* '''Returns:''' Returns the control and the selected element index.
+<sqf>params ["_control", "_selectedIndex"];</sqf>
+
+==== onHTMLLink ====
+* '''Use on:''' HTML
+* '''Fired on:''' Pressing and releasing a HTML link.
+* '''Returns:''' Returns the control and href.
+<sqf>params ["_control", "_url"];</sqf>
+
+==== onSliderPosChanged ====
+* '''Use on:''' Slider
+* '''Fired on:''' Changing the position of a slider.
+* '''Returns:''' Returns the control and the change.
+<sqf>params ["_control", "_newValue"];</sqf>
+
+==== onObjectMoved ====
+* '''Use on:''' Object
+* '''Fired on:''' Moving an object.
+* '''Returns:''' Returns the control and the offset on the x, y and z axes.
+<sqf>params ["_control", "_offset"];</sqf>
+
+==== onMenuSelected ====
+* '''Use on:''' Context menu
+* '''Fired on:''' Some item in context menu (used now only in new mission editor) was selected.
+* '''Returns:''' Returns the control and the command id.
+<sqf>params ["_control", "_commandId"];</sqf>
+
+==== onDraw ====
+* '''Use on:''' Map, Display (only on [[Procedural_Textures#UI_On_Texture|UIOnTexture]] Display {{GVI|arma3|2.12}})
+* '''Fired on:''' Fires when the map is drawn or the UI On Texture Display received a [[displayUpdate|draw request]] (can occur more than once per second).
+* '''Returns:''' Returns the map control.
+{{Feature|important|This event handler gets destroyed when the mission it was executed in ends.}}
+<sqf>params ["_controlOrDisplay"];</sqf>
+
+{{ArgTitle|4|onVideoStopped|{{GVI|arma2oa|1.56}}}}
+* '''Use on:''' Control
+* '''Fired on:''' Activated every time the video ends (when looped, handler is executed after every finished loop).
+* '''Returns:''' Returns the control.
+<sqf>params ["_control"];</sqf>
+
+
+{{Sticky|
+{{Feature|warning|
+When using the event names via [[:Category:Command Group: GUI Control - Event_Handlers|GUI scripting commands]] (e.g [[ctrlAddEventHandler]], [[displayAddEventHandler]]), the prefix "on" in the name '''must be removed''' (e.g. {{hl|ButtonDown}} instead of {{hl|onButtonDown}})!
+}}
+|bottom}}
+</div><!-- Used to limit Sticky range -->
+
+
+== Event Parameters ==
+
+The Event Handlers receive parameters through the [[Magic Variables|magic variable]] <var>_this</var>. Each event passes a different set of parameters (listed above) in an array. The control or display that the event was assigned to is always found in <sqf inline>_this select 0</sqf>.
+
+
+== Scope ==
+
+{{GVI|arma1|1.00}} In {{arma1}}, most control-specific events ONLY work for controls and never for displays. The two exceptions being: {{hl|onKeyDown}} and {{hl|onKeyUp}}.<br>
+{{GVI|arma2|1.00}} Since {{arma2}}, most control-specific events work for both displays and controls.
+
+
+== Defining Events ==
+
+User Interface Event Handlers can be assigned in two ways: Via class property definitions or via [[:Category:Scripting Commands|scripting commands]].
+
+=== Class-Defined Events ===
+
+Events can be defined in the Dialog (display) or Control classes (in [[Config.cpp]] or [[Description.ext]]). The event property value (string) is executed as a line of code.
+
+An example line (this would be found within a control or dialog class):
+<syntaxhighlight lang="cpp">
+onMouseButtonDown = "hint str _this";
+</syntaxhighlight>
+
+Full Example:
+<syntaxhighlight lang="cpp">
+class RscControlsGroup
+{
+	type	= 15;
+	idc		= -1;
+	style	=  0;
+	x = 0;
+	y = 0;
+	w = 1;
+	h = 1;
+
+	class VScrollbar
+	{
+		color[]				= { 1, 1, 1, 1 };
+		width				= 0.021;
+		autoScrollSpeed		= -1;
+		autoScrollDelay		= 5;
+		autoScrollRewind	= 0;
+	};
+
+	class HScrollbar
+	{
+		color[]	= { 1, 1, 1, 1 };
+		height	= 0.028;
+	};
+
+	class ScrollBar		// >= Arma 2
+	{
+		color[]			= { 1, 1, 1, 0.6 };
+		colorActive[]	= { 1, 1, 1, 1 };
+		colorDisabled[]	= { 1, 1, 1, 0.3 };
+		thumb			= "#(argb,8,8,3)color(1,1,1,1)";
+		arrowEmpty		= "#(argb,8,8,3)color(1,1,1,1)";
+		arrowFull		= "#(argb,8,8,3)color(1,1,1,1)";
+		border			= "#(argb,8,8,3)color(1,1,1,1)";
+	};
+
+	class Controls {};
+};
+
+class MouseHandler : RscControlsGroup
+{
+	onMouseHolding		= "[0, _this] call myEventFunction";
+	onMouseButtonDown	= "[1, _this] call myEventFunction";
+	onMouseButtonUp		= "[2, _this] call myEventFunction";
+	onMouseZChanged		= "[3, _this] call myEventFunction";
+	onMouseEnter		= "[4, _this] call myEventFunction";
+	idc = 123;
+	x = 0.0;
+	y = 0.0;
+	w = 1.0;
+	h = 1.0;
+	colorBackground[] = { 0.2, 0.0, 0.0, 0.0 };
+};
+</syntaxhighlight>
+
+=== Script-Defined Events ===
+
+These events can also be given to dialogs and controls using the [[displayAddEventHandler]] and [[ctrlAddEventHandler]] commands. The control has to be enabled for the Event Handler in order for Event Handlers to fire (see [[ctrlEnable]]).
+
+<sqf>
+// Add Event Handler:
+(findDisplay 46) displayAddEventHandler ["KeyDown", {
+	_this call functionName_keyDown;
+}];
+
+// Function definition:
+functionName_keyDown = {
+	params ["_ctrl", "_dikCode", "_shift", "_ctrlKey", "_alt"];
+	private _handled = false;
+
+	if (!_shift && !_ctrlKey && !_alt) then {
+		if (_dikCode in (actionKeys "NetworkStats")) then {
+			systemChat format ["EH fired for %1", _ctrl];
+			_handled = true;
+		};
+	};
+
+	_handled;
+};
+</sqf>
+
+
+[[Category:Event Handlers]]
+[[Category:GUI Topics|GUI Topics]]

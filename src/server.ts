@@ -17,6 +17,7 @@ import type { Db } from "./index/store.js";
 import { openDatabase } from "./index/store.js";
 import {
   getEntryByName,
+  getEntriesByName,
   suggestNames,
   searchEntries,
   searchClasses,
@@ -109,21 +110,25 @@ export function createServer(db: Db): McpServer {
     kind: "command" | "function" | "eventhandler",
     game?: GameId,
   ) => {
-    const entry = getEntryByName(db, name, kind);
-    if (!entry) {
+    // Usually one entry; event handlers can share a name across targets
+    // (HitPart on entities, projectiles and groups), so render them all.
+    const entries = getEntriesByName(db, name, kind);
+    if (entries.length === 0) {
       const near = suggestNames(db, name);
       return text(
         `No ${kind} named "${name}".` +
           (near.length ? `\n\nDid you mean: ${near.map((n) => `\`${n}\``).join(", ")}` : ""),
       );
     }
-    if (game && !entry.games.some((g) => g.game === game)) {
+    const inGame = game ? entries.filter((e) => e.games.some((g) => g.game === game)) : entries;
+    if (game && inGame.length === 0) {
+      const entry = entries[0]!;
       const available = entry.games.map((g) => gameLabel(g.game)).join(", ");
       return text(
         `\`${entry.name}\` exists, but not in ${gameLabel(game)}.\n\nAvailable in: ${available}.\n\nSource: ${entry.url}`,
       );
     }
-    return text(`${renderEntry(entry)}\n\n${ATTRIBUTION}`);
+    return text(`${inGame.map((e) => renderEntry(e)).join("\n\n---\n\n")}\n\n${ATTRIBUTION}`);
   };
 
   server.registerTool(

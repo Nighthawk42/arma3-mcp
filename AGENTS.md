@@ -62,6 +62,13 @@ npm run smoke      # drive every tool through an in-memory MCP client
 - **sqlite-vec rejects plain JS numbers as vec0 rowids.** Bind `BigInt`.
 - **Do not write TypeScript containing regexes via a bash heredoc** — backslash
   escapes get eaten. Use the Write tool.
+- **Event handlers have no pages of their own.** No page uses
+  `{{RV|type=eventhandler}}`; each handler is a section of a long reference page
+  (`src/wiki/event-handlers.ts`). A handler heading is a bare identifier,
+  optionally qualified (`HitPart (Projectile)`); a phrase heading is a group.
+  Heading levels differ per page, so never key off the level. Listing
+  `Category:Event Handlers` is one of the requests Cloudflare refuses outright
+  (by title *and* by page id), so the pages are named, not discovered.
 - **Config classes inherit across PBOs.** `scope` and `displayName` are often
   only set on an ancestor in a different mod, so inheritance is resolved after
   every source is collected, not per file.
@@ -98,9 +105,8 @@ rights to do so. See `data/NOTICE.md` for the sourced quotations.
 
 ## Known gaps
 
-- Event handler pages are not ingested as their own category yet, so
-  `get_event_handler` has nothing to serve. The {{RV}} parser already handles
-  `type=eventhandler`; what is missing is the category list in `scripts/ingest.ts`.
+- Only Arma 3's event handler reference pages are ingested (see
+  `EVENT_HANDLER_PAGES`); older games' handler lists are not.
 - 2 of 2,548 PBOs still fail to parse: one uses rapified value subtype 4, which
   is undocumented here and not yet handled.
 - Macros in text `config.cpp` are not expanded, so a class whose *name* comes

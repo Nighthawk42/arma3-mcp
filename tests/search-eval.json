@@ -13,7 +13,7 @@
     { "query": "change marker colour", "expect": ["setMarkerColor", "setMarkerColorLocal"] },
     { "query": "show a message on screen", "expect": ["hint", "titleText", "BIS_fnc_showNotification", "cutText", "hintSilent"] },
     { "query": "write to the rpt log file", "expect": ["diag_log"] },
-    { "query": "run code when a unit is killed", "expect": ["addEventHandler", "addMPEventHandler", "addMissionEventHandler"] },
+    { "query": "run code when a unit is killed", "expect": ["Killed", "MPKilled", "EntityKilled", "UnitKilled", "addEventHandler", "addMPEventHandler", "addMissionEventHandler"] },
     { "query": "find objects near a position", "expect": ["nearestObjects", "nearObjects", "nearEntities", "nearestObject"] },
     { "query": "delete a vehicle", "expect": ["deleteVehicle"] },
     { "query": "create a task for players", "expect": ["BIS_fnc_taskCreate", "createSimpleTask"] },

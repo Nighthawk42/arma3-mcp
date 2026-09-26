@@ -19,6 +19,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { WikiClient, chunk, WIKI_BASE, API_URL } from "../src/wiki/client.js";
 import { parseRvPage } from "../src/wiki/rv-parser.js";
+import { EVENT_HANDLER_PAGES, parseEventHandlerPage } from "../src/wiki/event-handlers.js";
 import { CORPUS_SCHEMA, type Corpus, type Entry } from "../src/types.js";
 
 /**
@@ -170,6 +171,29 @@ for (const batch of batches) {
     }
   }
   process.stderr.write(`  batch ${batchNo}/${batches.length} — ${added} new entries\r`);
+}
+
+// --- 3b. Event handlers ------------------------------------------------------
+// They live on a few reference pages rather than one page each (see
+// src/wiki/event-handlers.ts), so this is a single extra request.
+const handlerPages = EVENT_HANDLER_PAGES.filter((t) => !seen.has(t));
+if (handlerPages.length) {
+  let handlers = 0;
+  for (const page of await fetchResilient(handlerPages, quarantined)) {
+    seenOut.write(`${JSON.stringify(page.title)}\n`);
+    if (page.missing || !page.wikitext || !page.revision) continue;
+    for (const entry of parseEventHandlerPage({
+      title: page.title,
+      wikitext: page.wikitext,
+      url: client.pageUrl(page.title),
+      revision: page.revision,
+    })) {
+      entriesOut.write(`${JSON.stringify(entry)}\n`);
+      handlers++;
+    }
+  }
+  added += handlers;
+  console.error(`\n  event handlers: ${handlers} from ${handlerPages.length} reference page(s)`);
 }
 entriesOut.close();
 seenOut.close();
