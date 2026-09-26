@@ -221,12 +221,18 @@ export function registerDiscoveryTools(server: McpServer, db: Db): void {
       inputSchema: {
         code: z.string().describe("The SQF source to check"),
         game: gameEnum.optional().describe("Target game — enables availability checking"),
+        gameVersion: z
+          .string()
+          .regex(/^\d+(\.\d+)*$/, "a version like 2.10")
+          .optional()
+          .describe('Target version of that game, e.g. "2.10"; commands introduced later are reported as errors'),
         flagGlobalEffects: z.boolean().optional(),
       },
     },
-    async ({ code, game, flagGlobalEffects }) => {
-      const result = validateSqf(db, code, { game, flagGlobalEffects });
-      const out: string[] = [`# SQF check${game ? ` — target ${gameLabel(game)}` : ""}`, ""];
+    async ({ code, game, gameVersion, flagGlobalEffects }) => {
+      const result = validateSqf(db, code, { game, gameVersion, flagGlobalEffects });
+      const target = game ? ` — target ${gameLabel(game)}${gameVersion ? ` ${gameVersion}` : ""}` : "";
+      const out: string[] = [`# SQF check${target}`, ""];
       if (result.findings.length === 0) {
         out.push("No issues found.");
       } else {

@@ -90,8 +90,37 @@ const NON_COMMANDS = new Set([
 export interface ValidateOptions {
   /** Target game; availability is checked against it when given. */
   game?: GameId;
+  /**
+   * Target version of that game, e.g. "2.10". Commands introduced later are
+   * errors. Without it, only commands added after the game's first release are
+   * mentioned, as info — "requires Arma 3 0.50" on every command is noise.
+   */
+  gameVersion?: string;
   /** Warn about commands whose effect is global (multiplayer footgun). */
   flagGlobalEffects?: boolean;
+}
+
+/** Compares wiki version strings numerically: "2.08" < "2.10" < "2.14". */
+export function compareVersions(a: string, b: string): number {
+  return a.localeCompare(b, undefined, { numeric: true });
+}
+
+const baselines = new WeakMap<Db, Map<GameId, string>>();
+
+/** Each game's earliest documented version — its release, as far as the wiki is concerned. */
+function releaseVersions(db: Db): Map<GameId, string> {
+  let cached = baselines.get(db);
+  if (!cached) {
+    cached = new Map();
+    for (const row of db.prepare("select games from entries").all() as Array<{ games: string }>) {
+      for (const g of JSON.parse(row.games) as Array<{ game: GameId; since: string }>) {
+        const current = cached.get(g.game);
+        if (g.since && (!current || compareVersions(g.since, current) < 0)) cached.set(g.game, g.since);
+      }
+    }
+    baselines.set(db, cached);
+  }
+  return cached;
 }
 
 export function validateSqf(
@@ -143,13 +172,29 @@ export function validateSqf(
 
       const since = entry.games.find((g) => g.game === options.game)?.since;
       if (options.game && since && !reported.has(`${entry.name}:since`)) {
-        reported.add(`${entry.name}:since`);
-        findings.push({
-          severity: "info",
-          identifier: entry.name,
-          line: lineNo,
-          message: `requires ${GAMES[options.game].name} ${since} or later`,
-        });
+        const gameName = GAMES[options.game].name;
+        if (options.gameVersion) {
+          if (compareVersions(since, options.gameVersion) > 0) {
+            reported.add(`${entry.name}:since`);
+            findings.push({
+              severity: "error",
+              identifier: entry.name,
+              line: lineNo,
+              message: `introduced in ${gameName} ${since}; target is ${options.gameVersion}`,
+            });
+          }
+        } else {
+          const release = releaseVersions(db).get(options.game);
+          if (release && compareVersions(since, release) > 0) {
+            reported.add(`${entry.name}:since`);
+            findings.push({
+              severity: "info",
+              identifier: entry.name,
+              line: lineNo,
+              message: `added in ${gameName} ${since} (pass gameVersion to check against your target)`,
+            });
+          }
+        }
       }
 
       if (
